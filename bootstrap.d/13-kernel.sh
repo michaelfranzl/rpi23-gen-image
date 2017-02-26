@@ -6,12 +6,10 @@
 . ./functions.sh
 
 
-# Setup source directory
-mkdir -p "${R}/usr/src"
-
-
 # Copy kernel sources
-cp -rL "${KERNELSRC_DIR}" "${R}/usr/src/linux"
+#cp -rL "${KERNELSRC_DIR}" "${R}/usr/src/linux"
+mkdir -p "${KERNEL_DIR}"
+rsync -a --exclude=".git" "${KERNELSRC_DIR}/" "${KERNEL_DIR}/"
 
 
 # Install kernel modules
