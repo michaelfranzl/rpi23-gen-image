@@ -1,19 +1,35 @@
-# rpi23-gen-image
-## Introduction
-`rpi23-gen-image.sh` is an advanced Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers. The script at this time supports the bootstrapping of the Debian releases `jessie` and `stretch`. Raspberry Pi 3 images are currently generated for 32-bit mode only.
+*Note by Michael Franzl:*
 
-### Note
+This is a fork of the original project which is developed into a slightly different direction:
 
-This is a fork of the original. In this fork, the kernel must be the official/mainline/vanilla Linux kernel from Torvalds, and must be pre-compiled. In addition, the installation of the entire system to the SD card must be done manually by rsync'ing files because I found that this is an easier and quicker method and that resizing live partitions is troublesome and would always corrupt the filesystem.
+* Only Debian releases 8 ("Stretch") and newer are supported
+* Only the unpatched/mainline/vanilla Linux kernel is supported (not the Rapberry Pi Kernel flavor)
+* The Linux mainline/vanilla kernel must be pre-cross-compiled on the PC running this script.
+* Only U-Boot booting will be supported
+* The U-Boot sources must be pre-downloaded
+* The RPi firmware blobs must be pre-downloaded
+* The installation of the system to an SD card must be done via copying or rsync, rather than creating and expanding ISO images.
+* The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel
+
+The above changes are aimed a higher bootstrapping speed, less complexity, less surprises.
 
 For usage of this fork, see my blog post:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
 
+
+
+# rpi23-gen-image
+
+## Introduction
+`rpi23-gen-image.sh` is an advanced Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers.
+
+
+
 ## Build dependencies
 The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process. The script will check if all required packages are installed and missing packages will be installed automatically if confirmed by the user.
 
-  ```debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git```
+    debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git
 
 ## Command-line parameters
 The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi23-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi23-gen-image.sh` script.
@@ -48,10 +64,7 @@ Set default system locale. This setting can also be changed inside the running O
 ##### `TIMEZONE`="Europe/Berlin"
 Set default system timezone. All available timezones can be found in the `/usr/share/zoneinfo/` directory. This setting can also be changed inside the running OS using the `dpkg-reconfigure tzdata` command.
 
-##### `EXPANDROOT`=true
-Expand the root partition and filesystem automatically on first boot.
-
-#### Keyboard settings:
+#### Keyboard settings:
 These options are used to configure keyboard layout in `/etc/default/keyboard` for console and Xorg. These settings can also be changed inside the running OS using the `dpkg-reconfigure keyboard-configuration` command.
 
 ##### `XKB_MODEL`=""
@@ -67,13 +80,13 @@ Set the supported variant(s) of the keyboard layout(s).
 Set extra xkb configuration options.
 
 #### Networking settings (DHCP):
-This parameter is used to set up networking auto configuration in `/etc/systemd/network/eth.network`. The default location of network configuration files in the Debian `stretch` release was changed to `/lib/systemd/network`.`
+This parameter is used to set up networking auto configuration in `/etc/systemd/network/eth.network`.
 
 #####`ENABLE_DHCP`=true
 Set the system to use DHCP. This requires an DHCP server.
 
 #### Networking settings (static):
-These parameters are used to set up a static networking configuration in `/etc/systemd/network/eth.network`. The following static networking parameters are only supported if `ENABLE_DHCP` was set to `false`. The default location of network configuration files in the Debian `stretch` release was changed to `/lib/systemd/network`.
+These parameters are used to set up a static networking configuration in `/etc/systemd/network/eth.network`. The following static networking parameters are only supported if `ENABLE_DHCP` was set to `false`.
 
 #####`NET_ADDRESS`=""
 Set a static IPv4 or IPv6 address and its prefix, separated by "/", eg. "192.169.0.3/24".
@@ -144,9 +157,6 @@ Reduce the disk space usage by deleting packages and files. See `REDUCE_*` param
 ##### `ENABLE_UBOOT`=false
 Replace the default RPi2/3 second stage bootloader (bootcode.bin) with [U-Boot bootloader](http://git.denx.de/?p=u-boot.git;a=summary). U-Boot can boot images via the network using the BOOTP/TFTP protocol.
 
-##### `ENABLE_FBTURBO`=false
-Install and enable the [hardware accelerated Xorg video driver](https://github.com/ssvb/xf86-video-fbturbo) `fbturbo`. Please note that this driver is currently limited to hardware accelerated window moving and scrolling.
-
 ##### `ENABLE_IPTABLES`=false
 Enable iptables IPv4/IPv6 firewall. Simplified ruleset: Allow all outgoing connections. Block all incoming connections except to OpenSSH service.
 
@@ -178,36 +188,14 @@ Create an initramfs that that will be loaded during the Linux startup process. `
 ##### `ENABLE_IFNAMES`=true
 Enable automatic assignment of predictable, stable network interface names for all local Ethernet, WLAN interfaces. This might create complex and long interface names. This parameter is only supported if the Debian release `stretch` is used.
 
-#### Kernel compilation:
-##### `BUILD_KERNEL`=false
-Build and install the latest RPi2/3 Linux kernel. Currently only the default RPi2/3 kernel configuration is used. `BUILD_KERNEL`=true will automatically be set if the Raspberry Pi model `3` is used.
-
-##### `KERNEL_REDUCE`=false
-Reduce the size of the generated kernel by removing unwanted device, network and filesystem drivers (experimental).
-
-##### `KERNEL_THREADS`=1
-Number of parallel kernel building threads. If the parameter is left untouched the script will automatically determine the number of CPU cores to set the number of parallel threads to speed the kernel compilation.
+#### Kernel:
 
 ##### `KERNEL_HEADERS`=true
 Install kernel headers with built kernel.
 
-##### `KERNEL_MENUCONFIG`=false
-Start `make menuconfig` interactive menu-driven kernel configuration. The script will continue after `make menuconfig` was terminated.
-
-##### `KERNEL_REMOVESRC`=true
-Remove all kernel sources from the generated OS image after it was built and installed.
-
 ##### `KERNELSRC_DIR`=""
-Path to a directory of [RaspberryPi Linux kernel sources](https://github.com/raspberrypi/linux) that will be copied, configured, build and installed inside the chroot.
+Path to a directory of a built Linx Mainline Kernel.
 
-##### `KERNELSRC_CLEAN`=false
-Clean the existing kernel sources directory `KERNELSRC_DIR` (using `make mrproper`) after it was copied to the chroot and before the compilation of the kernel has started. This parameter will be ignored if no `KERNELSRC_DIR` was specified or if `KERNELSRC_PREBUILT`=true.
-
-##### `KERNELSRC_CONFIG`=true
-Run `make bcm2709_defconfig` (and optional `make menuconfig`) to configure the kernel sources before building. This parameter is automatically set to `true` if no existing kernel sources directory was specified using `KERNELSRC_DIR`. This parameter is ignored if `KERNELSRC_PREBUILT`=true.
-
-##### `KERNELSRC_PREBUILT`=false
-With this parameter set to true the script expects the existing kernel sources directory to be already successfully cross-compiled. The parameters `KERNELSRC_CLEAN`, `KERNELSRC_CONFIG` and `KERNEL_MENUCONFIG` are ignored and no kernel compilation tasks are performed.
 
 ##### `RPI_FIRMWARE_DIR`=""
 The directory containing a local copy of the firmware from the [RaspberryPi firmware project](https://github.com/raspberrypi/firmware). Default is to download the latest firmware directly from the project.

@@ -11,25 +11,13 @@ if [ -z "$APT_PROXY" ] ; then
   sed -i "s/\"\"/\"${APT_PROXY}\"/" "${ETC_DIR}/apt/apt.conf.d/10proxy"
 fi
 
-if [ "$BUILD_KERNEL" = false ] ; then
-  # Install APT pinning configuration for flash-kernel package
-  install_readonly files/apt/flash-kernel "${ETC_DIR}/apt/preferences.d/flash-kernel"
 
-  # Install APT sources.list
-  install_readonly files/apt/sources.list "${ETC_DIR}/apt/sources.list"
-  echo "deb ${COLLABORA_URL} ${RELEASE} rpi2" >> "${ETC_DIR}/apt/sources.list"
+install_readonly files/apt/sources.list "${ETC_DIR}/apt/sources.list"
 
-  # Upgrade collabora package index and install collabora keyring
-  chroot_exec apt-get -qq -y update
-  chroot_exec apt-get -qq -y --force-yes install collabora-obs-archive-keyring
-else # BUILD_KERNEL=true
-  # Install APT sources.list
-  install_readonly files/apt/sources.list "${ETC_DIR}/apt/sources.list"
+# Use specified APT server and release
+sed -i "s/\/ftp.debian.org\//\/${APT_SERVER}\//" "${ETC_DIR}/apt/sources.list"
+sed -i "s/ jessie/ ${RELEASE}/" "${ETC_DIR}/apt/sources.list"
 
-  # Use specified APT server and release
-  sed -i "s/\/ftp.debian.org\//\/${APT_SERVER}\//" "${ETC_DIR}/apt/sources.list"
-  sed -i "s/ jessie/ ${RELEASE}/" "${ETC_DIR}/apt/sources.list"
-fi
 
 # Allow the installation of non-free Debian packages
 if [ "$ENABLE_NONFREE" = true ] ; then

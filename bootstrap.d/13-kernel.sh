@@ -9,26 +9,9 @@
 # Setup source directory
 mkdir -p "${R}/usr/src"
 
-# Copy existing kernel sources into chroot directory
-if [ -n "$KERNELSRC_DIR" ] && [ -d "$KERNELSRC_DIR" ] ; then
 
-  # Check if kernel compilation was successful
-  if [ ! -r "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
-    echo "error: kernel compilation failed! (zImage not found)"
-    cleanup
-    exit 1
-  fi
-
-  # Copy kernel sources
-  cp -rL "${KERNELSRC_DIR}" "${R}/usr/src"
-  
-else
-  echo "error: $KERNELSRC_DIR not existing!"
-  cleanup
-  exit 1
-fi
-
-
+# Copy kernel sources
+cp -rL "${KERNELSRC_DIR}" "${R}/usr/src/linux"
 
 
 # Install kernel modules
@@ -41,8 +24,10 @@ else
   make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" INSTALL_FW_PATH=../../../lib firmware_install
 fi
 
+
+
 # Install kernel headers
-if [ "$KERNEL_HEADERS" = true ] && [ "$KERNEL_REDUCE" = false ] ; then
+if [ "$KERNEL_HEADERS" = true ] ; then
   make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" INSTALL_HDR_PATH=../.. headers_install
 fi
 
@@ -76,10 +61,6 @@ fi
 make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" mrproper
 
 
-# Remove kernel sources
-if [ "$KERNEL_REMOVESRC" = true ] ; then
-  rm -fr "${KERNEL_DIR}"
-fi
 
 if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
   # Install boot binaries from local directory
@@ -213,12 +194,7 @@ fi
 if [ "$ENABLE_INITRAMFS" = true ] ; then
   if [ "$ENABLE_CRYPTFS" = true ] ; then
     # Include initramfs scripts to auto expand encrypted root partition
-    if [ "$EXPANDROOT" = true ] ; then
-      install_exec files/initramfs/expand_encrypted_rootfs "${ETC_DIR}/initramfs-tools/scripts/init-premount/expand_encrypted_rootfs"
-      install_exec files/initramfs/expand-premount "${ETC_DIR}/initramfs-tools/scripts/local-premount/expand-premount"
-      install_exec files/initramfs/expand-tools "${ETC_DIR}/initramfs-tools/hooks/expand-tools"
-    fi
-
+    
     # Disable SSHD inside initramfs
     printf "#\n# DROPBEAR: [ y | n ]\n#\n\nDROPBEAR=n\n" >> "${ETC_DIR}/initramfs-tools/initramfs.conf"
 

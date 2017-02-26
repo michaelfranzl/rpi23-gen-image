@@ -13,16 +13,6 @@ if [ "$ENABLE_SSHD" = true ] ; then
   cat files/firstboot/21-generate-ssh-keys.sh >> "${ETC_DIR}/rc.firstboot"
 fi
 
-# Prepare filesystem auto expand
-if [ "$EXPANDROOT" = true ] ; then
-  if [ "$ENABLE_CRYPTFS" = false ] ; then
-    cat files/firstboot/22-expandroot.sh >> "${ETC_DIR}/rc.firstboot"
-  else
-    # Regenerate initramfs to remove encrypted root partition auto expand
-    cat files/firstboot/23-regenerate-initramfs.sh >> "${ETC_DIR}/rc.firstboot"
-  fi
-fi
-
 # Ensure that dbus machine-id exists
 cat files/firstboot/24-generate-machineid.sh >> "${ETC_DIR}/rc.firstboot"
 

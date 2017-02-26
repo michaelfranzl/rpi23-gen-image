@@ -37,13 +37,15 @@ set -x
 
 # Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
+
 RPI2_DTB_FILE=${RPI2_DTB_FILE:=bcm2709-rpi-2-b.dtb}
 RPI2_UBOOT_CONFIG=${RPI2_UBOOT_CONFIG:=rpi_2_defconfig}
+
 RPI3_DTB_FILE=${RPI3_DTB_FILE:=bcm2710-rpi-3-b.dtb}
 RPI3_UBOOT_CONFIG=${RPI3_UBOOT_CONFIG:=rpi_3_32b_defconfig}
 
 # Debian release
-RELEASE=${RELEASE:=jessie}
+RELEASE=${RELEASE:=stretch}
 KERNEL_ARCH=${KERNEL_ARCH:=arm}
 RELEASE_ARCH=${RELEASE_ARCH:=armhf}
 CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
@@ -77,7 +79,6 @@ HOSTNAME=${HOSTNAME:=rpi${RPI_MODEL}-${RELEASE}}
 PASSWORD=${PASSWORD:=raspberry}
 DEFLOCAL=${DEFLOCAL:="en_US.UTF-8"}
 TIMEZONE=${TIMEZONE:="Europe/Berlin"}
-EXPANDROOT=${EXPANDROOT:=true}
 
 # Keyboard settings
 XKB_MODEL=${XKB_MODEL:=""}
@@ -123,26 +124,15 @@ ENABLE_ROOT_SSH=${ENABLE_ROOT_SSH:=false}
 ENABLE_MINBASE=${ENABLE_MINBASE:=false}
 ENABLE_REDUCE=${ENABLE_REDUCE:=false}
 ENABLE_UBOOT=${ENABLE_UBOOT:=false}
-ENABLE_FBTURBO=${ENABLE_FBTURBO:=false}
 ENABLE_HARDNET=${ENABLE_HARDNET:=false}
 ENABLE_IPTABLES=${ENABLE_IPTABLES:=false}
 ENABLE_SPLITFS=${ENABLE_SPLITFS:=false}
 ENABLE_INITRAMFS=${ENABLE_INITRAMFS:=false}
 ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
 
-# Kernel compilation settings
-BUILD_KERNEL=${BUILD_KERNEL:=false}
-KERNEL_REDUCE=${KERNEL_REDUCE:=false}
-KERNEL_THREADS=${KERNEL_THREADS:=1}
+# Kernel installation settings
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
-KERNEL_MENUCONFIG=${KERNEL_MENUCONFIG:=false}
-KERNEL_REMOVESRC=${KERNEL_REMOVESRC:=true}
-
-# Kernel compilation from source directory settings
 KERNELSRC_DIR=${KERNELSRC_DIR:=""}
-KERNELSRC_CLEAN=${KERNELSRC_CLEAN:=false}
-KERNELSRC_CONFIG=${KERNELSRC_CONFIG:=true}
-KERNELSRC_PREBUILT=${KERNELSRC_PREBUILT:=false}
 
 # Reduce disk usage settings
 REDUCE_APT=${REDUCE_APT:=true}
@@ -169,11 +159,15 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,sudo,systemd,sysvinit-utils"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,systemd,sysvinit-utils"
 
-# Packages required for bootstrapping
+# Packages required for bootstrapping  (host PC)
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git"
 MISSING_PACKAGES=""
+
+
+# Required packages to compile u-boot inside of chroot
+COMPILER_PACKAGES="build-essential bc device-tree-compiler"
 
 set +x
 
@@ -196,26 +190,6 @@ if [ "$ENABLE_WIRELESS" = true ] && [ "$RPI_MODEL" != 3 ] ; then
   exit 1
 fi
 
-# Set compiler packages and build RPi2/3 Linux kernel if required by Debian release
-if [ "$RELEASE" = "jessie" ] ; then
-  COMPILER_PACKAGES="linux-compiler-gcc-4.8-arm g++ make bc"
-elif [ "$RELEASE" = "stretch" ] ; then
-  COMPILER_PACKAGES="linux-compiler-gcc-5-arm g++ make bc"
-  BUILD_KERNEL=true
-else
-  echo "error: Debian release ${RELEASE} is not supported!"
-  exit 1
-fi
-
-# Add packages required for kernel cross compilation
-if [ "$BUILD_KERNEL" = true ] ; then
-  REQUIRED_PACKAGES="${REQUIRED_PACKAGES} crossbuild-essential-armhf bc"
-fi
-
-# Add libncurses5 to enable kernel menuconfig
-if [ "$KERNEL_MENUCONFIG" = true ] ; then
-  REQUIRED_PACKAGES="${REQUIRED_PACKAGES} libncurses5-dev"
-fi
 
 # Stop the Crypto Wars
 if [ "$DISABLE_FBI" = true ] ; then
@@ -271,12 +245,6 @@ if [ ! -d "./files/" ] ; then
   exit 1
 fi
 
-# Check if specified KERNELSRC_DIR directory exists
-if [ -n "$KERNELSRC_DIR" ] && [ ! -d "$KERNELSRC_DIR" ] ; then
-  echo "error: '${KERNELSRC_DIR}' specified directory not found (KERNELSRC_DIR)!"
-  exit 1
-fi
-
 # Check if specified CHROOT_SCRIPTS directory exists
 if [ -n "$CHROOT_SCRIPTS" ] && [ ! -d "$CHROOT_SCRIPTS" ] ; then
    echo "error: ${CHROOT_SCRIPTS} specified directory not found (CHROOT_SCRIPTS)!"
@@ -292,6 +260,14 @@ fi
 # Don't clobber an old build
 if [ -e "$BUILDDIR" ] ; then
   echo "error: directory ${BUILDDIR} already exists, not proceeding"
+  exit 1
+fi
+
+
+# Check if kernel compilation was successful
+if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
+  echo "error: cannot proceed: Linux mainline kernel must be precompiled"
+  cleanup
   exit 1
 fi
 
@@ -319,11 +295,6 @@ if [ "$DEFLOCAL" != "en_US.UTF-8" ] ; then
   APT_INCLUDES="${APT_INCLUDES},locales,keyboard-configuration,console-setup"
 fi
 
-# Add parted package, required to get partprobe utility
-if [ "$EXPANDROOT" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},parted"
-fi
-
 # Add dbus package, recommended if using systemd
 if [ "$ENABLE_DBUS" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES},dbus"
@@ -347,12 +318,6 @@ fi
 # Add rng-tools package
 if [ "$ENABLE_HWRANDOM" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES},rng-tools"
-fi
-
-# Add fbturbo video driver
-if [ "$ENABLE_FBTURBO" = true ] ; then
-  # Enable xorg package dependencies
-  ENABLE_XORG=true
 fi
 
 # Add user defined window manager package
@@ -381,15 +346,6 @@ if [ "$ENABLE_REDUCE" = true ] ; then
   fi
 fi
 
-# Configure kernel sources if no KERNELSRC_DIR
-if [ "$BUILD_KERNEL" = true ] && [ -z "$KERNELSRC_DIR" ] ; then
-  KERNELSRC_CONFIG=true
-fi
-
-# Configure reduced kernel
-if [ "$KERNEL_REDUCE" = true ] ; then
-  KERNELSRC_CONFIG=false
-fi
 
 # Execute bootstrap scripts
 for SCRIPT in bootstrap.d/*.sh; do
@@ -418,9 +374,7 @@ EOF
 fi
 
 # Remove apt-utils
-if [ "$RELEASE" = "jessie" ] ; then
-  chroot_exec apt-get purge -qq -y --force-yes apt-utils
-fi
+chroot_exec apt-get purge -qq -y --force-yes apt-utils
 
 # Generate required machine-id
 MACHINE_ID=$(dbus-uuidgen)
@@ -454,3 +408,6 @@ rm -f "${R}/initrd.img"
 rm -f "${R}/vmlinuz"
 rm -f "${R}${QEMU_BINARY}"
 
+echo ""
+echo "DONE!"
+echo ""

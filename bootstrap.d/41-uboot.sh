@@ -6,7 +6,7 @@
 . ./functions.sh
 
 # Install gcc/c++ build environment inside the chroot
-if [ "$ENABLE_UBOOT" = true ] || [ "$ENABLE_FBTURBO" = true ] ; then
+if [ "$ENABLE_UBOOT" = true ]; then
   COMPILER_PACKAGES=$(chroot_exec apt-get -s install ${COMPILER_PACKAGES} | grep "^Inst " | awk -v ORS=" " '{ print $2 }')
   chroot_exec apt-get -q -y --force-yes --no-install-recommends install ${COMPILER_PACKAGES}
 fi
@@ -16,7 +16,8 @@ THREADS=$(grep -c processor /proc/cpuinfo)
 # Fetch and build U-Boot bootloader
 if [ "$ENABLE_UBOOT" = true ] ; then
   # Fetch U-Boot bootloader sources
-  git -C "${R}/tmp" clone "${UBOOT_URL}"
+  #git -C "${R}/tmp" clone "${UBOOT_URL}"
+  cp -r ${UBOOT_URL} ${R}/tmp
 
   # Build and install U-Boot inside chroot
   chroot_exec make -j${THREADS} -C /tmp/u-boot/ ${UBOOT_CONFIG} all

@@ -7,16 +7,16 @@
 
 # Install and setup hostname
 install_readonly files/network/hostname "${ETC_DIR}/hostname"
-sed -i "s/^rpi2-jessie/${HOSTNAME}/" "${ETC_DIR}/hostname"
+sed -i "s/^raspberry/${HOSTNAME}/" "${ETC_DIR}/hostname"
 
 # Install and setup hosts
 install_readonly files/network/hosts "${ETC_DIR}/hosts"
-sed -i "s/rpi2-jessie/${HOSTNAME}/" "${ETC_DIR}/hosts"
+sed -i "s/raspberry/${HOSTNAME}/" "${ETC_DIR}/hosts"
 
 # Setup hostname entry with static IP
 if [ "$NET_ADDRESS" != "" ] ; then
   NET_IP=$(echo "${NET_ADDRESS}" | cut -f 1 -d'/')
-  sed -i "s/^127.0.1.1/${NET_IP}/" "${ETC_DIR}/hosts"
+  sed -i "s/^127.0.0.1/${NET_IP}/" "${ETC_DIR}/hosts"
 fi
 
 # Remove IPv6 hosts
@@ -55,12 +55,6 @@ fi
 
 # Remove empty settings from network configuration
 sed -i "/.*=\$/d" "${ETC_DIR}/systemd/network/eth.network"
-
-# Move systemd network configuration if required by Debian release
-if [ "$RELEASE" = "stretch" ] ; then
-  mv -v "${ETC_DIR}/systemd/network/eth.network" "${LIB_DIR}/systemd/network/10-eth.network"
-  rm -fr "${ETC_DIR}/systemd/network"
-fi
 
 # Enable systemd-networkd service
 chroot_exec systemctl enable systemd-networkd
