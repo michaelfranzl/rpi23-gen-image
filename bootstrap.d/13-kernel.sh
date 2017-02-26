@@ -47,15 +47,8 @@ install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"
 # Copy device tree binaries
 install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
 
-
-if [ "$ENABLE_UBOOT" = false ] ; then
-  # Convert and copy zImage kernel to the boot directory
-  "${KERNEL_DIR}/scripts/mkknlimg" "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
-else
-  # Copy zImage kernel to the boot directory
-  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
-fi
-
+# Copy zImage kernel to the boot directory
+install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
 
 # Clean the kernel sources in the chroot
 make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" mrproper

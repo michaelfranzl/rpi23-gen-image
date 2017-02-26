@@ -150,9 +150,6 @@ Use debootstrap script variant `minbase` which only includes essential packages 
 ##### `ENABLE_REDUCE`=false
 Reduce the disk space usage by deleting packages and files. See `REDUCE_*` parameters for detailed information.
 
-##### `ENABLE_UBOOT`=false
-Replace the default RPi2/3 second stage bootloader (bootcode.bin) with [U-Boot bootloader](http://git.denx.de/?p=u-boot.git;a=summary). U-Boot can boot images via the network using the BOOTP/TFTP protocol.
-
 ##### `ENABLE_IPTABLES`=false
 Enable iptables IPv4/IPv6 firewall. Simplified ruleset: Allow all outgoing connections. Block all incoming connections except to OpenSSH service.
 
