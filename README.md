@@ -154,7 +154,7 @@ Reduce the disk space usage by deleting packages and files. See `REDUCE_*` param
 Enable iptables IPv4/IPv6 firewall. Simplified ruleset: Allow all outgoing connections. Block all incoming connections except to OpenSSH service.
 
 ##### `ENABLE_USER`=true
-Create non-root user with password raspberry. Unless overridden with `USER_NAME`=user, username will be `pi`.
+Create non-root user with password set via $PASSWORD variable. Unless overridden with `USER_NAME`=user, username will be `pi`.
 
 ##### `USER_NAME`=pi
 Non-root user to create.  Ignored if `ENABLE_USER`=false
@@ -168,9 +168,6 @@ password, use only in trusted environments.
 
 ##### `ENABLE_HARDNET`=false
 Enable IPv4/IPv6 network stack hardening settings.
-
-##### `ENABLE_SPLITFS`=false
-Enable having root partition on an USB drive by creating two image files: one for the `/boot/firmware` mount point, and another for `/`.
 
 ##### `CHROOT_SCRIPTS`=""
 Path to a directory with scripts that should be run in the chroot before the image is finally built. Every executable file in this directory is run in lexicographical order.
@@ -283,27 +280,3 @@ All information related to the bootstrapping process and the commands executed b
 ```shell
 script -c 'APT_SERVER=ftp.de.debian.org ./rpi23-gen-image.sh' ./build.log
 ```
-
-## Flashing the image file
-After the image file was successfully created by the `rpi23-gen-image.sh` script it can be copied to the microSD card that will be used by the RPi2/3 computer. This can be performed by using the tools `bmaptool` or `dd`. Using `bmaptool` will probably speed-up the copy process because `bmaptool` copies more wisely than `dd`.
-
-#####Flashing examples:
-```shell
-bmaptool copy ./images/jessie/2015-12-13-debian-jessie.img /dev/mmcblk0
-dd bs=4M if=./images/jessie/2015-12-13-debian-jessie.img of=/dev/mmcblk0
-```
-If you have set `ENABLE_SPLITFS`, copy the `-frmw` image on the microSD card, then the `-root` one on the USB drive:
-```shell
-bmaptool copy ./images/jessie/2015-12-13-debian-jessie-frmw.img /dev/mmcblk0
-bmaptool copy ./images/jessie/2015-12-13-debian-jessie-root.img /dev/sdc
-```
-
-## External links and references
-* [Debian worldwide mirror sites](https://www.debian.org/mirror/list)
-* [Debian Raspberry Pi 2 Wiki](https://wiki.debian.org/RaspberryPi2)
-* [Official Raspberry Pi Firmware on github](https://github.com/raspberrypi/firmware)
-* [Official Raspberry Pi Kernel on github](https://github.com/raspberrypi/linux)
-* [U-BOOT git repository](http://git.denx.de/?p=u-boot.git;a=summary)
-* [Xorg DDX driver fbturbo](https://github.com/ssvb/xf86-video-fbturbo)
-* [RPi3 Wireless interface firmware](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm)
-* [Collabora RPi2 Kernel precompiled](https://repositories.collabora.co.uk/debian/)
