@@ -175,14 +175,16 @@ Create an initramfs that that will be loaded during the Linux startup process. `
 ##### `ENABLE_IFNAMES`=true
 Enable automatic assignment of predictable, stable network interface names for all local Ethernet, WLAN interfaces. This might create complex and long interface names. This parameter is only supported if the Debian release `stretch` is used.
 
-#### Kernel:
+#### Kernel, Firmware, and bootloader:
 
 ##### `KERNEL_HEADERS`=true
 Install kernel headers with built kernel.
 
 ##### `KERNELSRC_DIR`=""
-Path to a directory of a built Linx Mainline Kernel.
+Path to a directory of a pre-built and cross-compiled Linux mainline/vanilla kernel. $KERNELSRC_DIR
 
+##### `UBOOTSRC_DIR`=""
+Path to a local copy of the u-boot sources. Download it with `git clone git://git.denx.de/u-boot.git`.
 
 ##### `RPI_FIRMWARE_DIR`=""
 The directory containing a local copy of the firmware from the [RaspberryPi firmware project](https://github.com/raspberrypi/firmware). Default is to download the latest firmware directly from the project.
@@ -245,7 +247,6 @@ The functions of this script that are required for the different stages of the b
 | `30-security.sh` | Setup Users and Security settings |
 | `31-logging.sh` | Setup Logging |
 | `41-uboot.sh` | Build and Setup U-Boot |
-| `42-fbturbo.sh` | Build and Setup fbturbo Xorg driver |
 | `50-firstboot.sh` | First boot actions |
 | `99-reduce.sh` | Reduce the disk space usage |
 

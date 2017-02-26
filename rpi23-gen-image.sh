@@ -49,15 +49,12 @@ RELEASE=${RELEASE:=stretch}
 KERNEL_ARCH=${KERNEL_ARCH:=arm}
 RELEASE_ARCH=${RELEASE_ARCH:=armhf}
 CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
-KERNEL_IMAGE=${KERNEL_IMAGE:=kernel7.img}
+KERNEL_IMAGE=${KERNEL_IMAGE:=linuz.img}
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
-KERNEL_URL=${KERNEL_URL:=https://github.com/raspberrypi/linux}
 FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/boot}
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
-FBTURBO_URL=${FBTURBO_URL:=https://github.com/ssvb/xf86-video-fbturbo.git}
-UBOOT_URL=${UBOOT_URL:=git://git.denx.de/u-boot.git}
 
 # Build directories
 BASEDIR="$(pwd)/images/${RELEASE}"
@@ -129,6 +126,7 @@ ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
 # Kernel installation settings
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
 KERNELSRC_DIR=${KERNELSRC_DIR:=""}
+UBOOTSRC_DIR=${UBOOTSRC_DIR:=""}
 
 # Reduce disk usage settings
 REDUCE_APT=${REDUCE_APT:=true}
@@ -146,9 +144,6 @@ CRYPTFS_PASSWORD=${CRYPTFS_PASSWORD:=""}
 CRYPTFS_MAPPING=${CRYPTFS_MAPPING:="secure"}
 CRYPTFS_CIPHER=${CRYPTFS_CIPHER:="aes-xts-plain64:sha512"}
 CRYPTFS_XTSKEYSIZE=${CRYPTFS_XTSKEYSIZE:=512}
-
-# Stop the Crypto Wars
-DISABLE_FBI=${DISABLE_FBI:=false}
 
 # Chroot scripts directory
 CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
@@ -186,11 +181,6 @@ if [ "$ENABLE_WIRELESS" = true ] && [ "$RPI_MODEL" != 3 ] ; then
 fi
 
 
-# Stop the Crypto Wars
-if [ "$DISABLE_FBI" = true ] ; then
-  ENABLE_CRYPTFS=true
-fi
-
 # Add cryptsetup package to enable filesystem encryption
 if [ "$ENABLE_CRYPTFS" = true ] ; then
   REQUIRED_PACKAGES="${REQUIRED_PACKAGES} cryptsetup"
@@ -215,7 +205,7 @@ for package in $REQUIRED_PACKAGES ; do
   fi
 done
 
-# Ask if missing packages should get installed right now
+# Ask if missing packages should be installed right now
 if [ -n "$MISSING_PACKAGES" ] ; then
   echo "the following packages needed by this script are not installed:"
   echo "$MISSING_PACKAGES"
@@ -258,10 +248,16 @@ if [ -e "$BUILDDIR" ] ; then
   exit 1
 fi
 
-
-# Check if kernel compilation was successful
+# Check early if kernel is pre-compiled
 if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
   echo "error: cannot proceed: Linux mainline kernel must be precompiled"
+  cleanup
+  exit 1
+fi
+
+# Check early if u-boot sources are downloaded
+if [ ! -d "${UBOOTSRC_DIR}" ] ; then
+  echo "error: cannot proceed: U-Boot bootloader source directory not existing"
   cleanup
   exit 1
 fi
