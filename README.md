@@ -25,7 +25,9 @@ The status of this project is EXPERIMENTAL.
 See related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
+
 https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
+
 https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
 
