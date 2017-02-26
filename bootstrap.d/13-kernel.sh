@@ -128,11 +128,6 @@ echo "${CMDLINE}" > "${BOOT_DIR}/cmdline.txt"
 # Install firmware config
 install_readonly files/boot/config.txt "${BOOT_DIR}/config.txt"
 
-# Setup minimal GPU memory allocation size: 16MB (no X)
-if [ "$ENABLE_MINGPU" = true ] ; then
-  echo "gpu_mem=16" >> "${BOOT_DIR}/config.txt"
-fi
-
 # Setup boot with initramfs
 if [ "$ENABLE_INITRAMFS" = true ] ; then
   echo "initramfs initramfs-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"

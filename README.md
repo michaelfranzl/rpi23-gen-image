@@ -49,8 +49,8 @@ A comma separated list of additional packages to be installed during bootstrappi
 ##### `RPI_MODEL`=2
 Specifiy the target Raspberry Pi hardware model. The script at this time supports the Raspberry Pi models `2` and `3`. `BUILD_KERNEL`=true will automatically be set if the Raspberry Pi model `3` is used.
 
-##### `RELEASE`="jessie"
-Set the desired Debian release name. The script at this time supports the bootstrapping of the Debian releases "jessie" and "stretch". `BUILD_KERNEL`=true will automatically be set if the Debian release `stretch` is used.
+##### `RELEASE`="stretch"
+Set the desired Debian release name. Only use "stretch" or newer.
 
 ##### `HOSTNAME`="rpi$RPI_MODEL-$RELEASE"
 Set system host name. It's recommended that the host name is unique in the corresponding subnet.
@@ -83,7 +83,7 @@ Set extra xkb configuration options.
 This parameter is used to set up networking auto configuration in `/etc/systemd/network/eth.network`.
 
 #####`ENABLE_DHCP`=true
-Set the system to use DHCP. This requires an DHCP server.
+Set the system to use DHCP. This requires an DHCP server running in your local network.
 
 #### Networking settings (static):
 These parameters are used to set up a static networking configuration in `/etc/systemd/network/eth.network`. The following static networking parameters are only supported if `ENABLE_DHCP` was set to `false`.
@@ -126,17 +126,13 @@ Allow the installation of non-free Debian packages that do not comply with the D
 Download and install the [closed-source firmware binary blob](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm) that is required to run the internal wireless interface of the Raspberry Pi model `3`. This parameter is ignored if the specified `RPI_MODEL` is not `3`.
 
 ##### `ENABLE_RSYSLOG`=true
-If set to false, disable and uninstall rsyslog (so logs will be available only
-in journal files)
+If set to false, disable and uninstall rsyslog (so logs will be available only in journal files)
 
 ##### `ENABLE_SOUND`=true
 Enable sound hardware and install Advanced Linux Sound Architecture.
 
 ##### `ENABLE_HWRANDOM`=true
 Enable Hardware Random Number Generator. Strong random numbers are important for most network based communications that use encryption. It's recommended to be enabled.
-
-##### `ENABLE_MINGPU`=false
-Minimize the amount of shared memory reserved for the GPU. It doesn't seem to be possible to fully disable the GPU.
 
 ##### `ENABLE_DBUS`=true
 Install and enable D-Bus message bus. Please note that systemd should work without D-bus but it's recommended to be enabled.
