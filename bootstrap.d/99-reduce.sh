@@ -55,25 +55,6 @@ if [ "$ENABLE_REDUCE" = true ] ; then
     chroot_exec apt-get -qq -y --force-yes purge alsa-utils libsamplerate0 libasound2 libasound2-data
   fi
 
-  # Re-install tools for managing kernel moduless
-  if [ "$RELEASE" = "jessie" ] ; then
-    chroot_exec apt-get -qq -y --force-yes install module-init-tools
-  fi
-
-  # Remove GPU kernels
-  if [ "$ENABLE_MINGPU" = true ] ; then
-    rm -f "${BOOT_DIR}/start.elf"
-    rm -f "${BOOT_DIR}/fixup.dat"
-    rm -f "${BOOT_DIR}/start_x.elf"
-    rm -f "${BOOT_DIR}/fixup_x.dat"
-  fi
-
-  # Remove kernel and initrd from /boot (already in /boot/firmware)
-  if [ "$BUILD_KERNEL" = false ] ; then
-    rm -f "${R}/boot/vmlinuz-*"
-    rm -f "${R}/boot/initrd.img-*"
-  fi
-
   # Clean APT list of repositories
   rm -fr "${R}/var/lib/apt/lists/*"
   chroot_exec apt-get -qq -y update

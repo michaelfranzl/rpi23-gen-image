@@ -47,7 +47,7 @@ A comma separated list of additional packages to be installed during bootstrappi
 
 #### General system settings:
 ##### `RPI_MODEL`=2
-Specifiy the target Raspberry Pi hardware model. The script at this time supports the Raspberry Pi models `2` and `3`. `BUILD_KERNEL`=true will automatically be set if the Raspberry Pi model `3` is used.
+Specifiy the target Raspberry Pi hardware model. The script at this time supports the Raspberry Pi models `2` and `3`.
 
 ##### `RELEASE`="stretch"
 Set the desired Debian release name. Only use "stretch" or newer.
@@ -131,9 +131,6 @@ If set to false, disable and uninstall rsyslog (so logs will be available only i
 ##### `ENABLE_SOUND`=true
 Enable sound hardware and install Advanced Linux Sound Architecture.
 
-##### `ENABLE_HWRANDOM`=true
-Enable Hardware Random Number Generator. Strong random numbers are important for most network based communications that use encryption. It's recommended to be enabled.
-
 ##### `ENABLE_DBUS`=true
 Install and enable D-Bus message bus. Please note that systemd should work without D-bus but it's recommended to be enabled.
 
@@ -173,7 +170,7 @@ Enable IPv4/IPv6 network stack hardening settings.
 Path to a directory with scripts that should be run in the chroot before the image is finally built. Every executable file in this directory is run in lexicographical order.
 
 ##### `ENABLE_INITRAMFS`=false
-Create an initramfs that that will be loaded during the Linux startup process. `ENABLE_INITRAMFS` will automatically get enabled if `ENABLE_CRYPTFS`=true. This parameter will be ignored if `BUILD_KERNEL`=false.
+Create an initramfs that that will be loaded during the Linux startup process. `ENABLE_INITRAMFS` will automatically get enabled if `ENABLE_CRYPTFS`=true.
 
 ##### `ENABLE_IFNAMES`=true
 Enable automatic assignment of predictable, stable network interface names for all local Ethernet, WLAN interfaces. This might create complex and long interface names. This parameter is only supported if the Debian release `stretch` is used.
@@ -220,7 +217,7 @@ Remove all `locale` translation files.
 #### Encrypted root partition:
 
 ##### `ENABLE_CRYPTFS`=false
-Enable full system encryption with dm-crypt. Setup a fully LUKS encrypted root partition (aes-xts-plain64:sha512) and generate required initramfs. The /boot directory will not be encrypted. This parameter will be ignored if `BUILD_KERNEL`=false. `ENABLE_CRYPTFS` is experimental. SSH-to-initramfs is currently not supported but will be soon - feel free to help.
+Enable full system encryption with dm-crypt. Setup a fully LUKS encrypted root partition (aes-xts-plain64:sha512) and generate required initramfs. The /boot directory will not be encrypted. `ENABLE_CRYPTFS` is experimental.
 
 ##### `CRYPTFS_PASSWORD`=""
 Set password of the encrypted root partition. This parameter is mandatory if `ENABLE_CRYPTFS`=true.

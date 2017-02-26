@@ -25,31 +25,27 @@ install_exec "${R}/tmp/u-boot/tools/mkimage" "${R}/usr/sbin/mkimage"
 install_readonly "${R}/tmp/u-boot/u-boot.bin" "${BOOT_DIR}/u-boot.bin"
 printf "\n# boot u-boot kernel\nkernel=u-boot.bin\n" >> "${BOOT_DIR}/config.txt"
 
+
 # Install and setup U-Boot command file
 install_readonly files/boot/uboot.mkimage "${BOOT_DIR}/uboot.mkimage"
 printf "# Set the kernel boot command line\nsetenv bootargs \"earlyprintk ${CMDLINE}\"\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
 
 if [ "$ENABLE_INITRAMFS" = true ] ; then
-# Convert generated initramfs for U-Boot using mkimage
-chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initramfs-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
+  # Convert generated initramfs for U-Boot using mkimage
+  chroot_exec /usr/sbin/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initramfs-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
 
-# Remove original initramfs file
-rm -f "${BOOT_DIR}/initramfs-${KERNEL_VERSION}"
+  # Remove original initramfs file
+  rm -f "${BOOT_DIR}/initramfs-${KERNEL_VERSION}"
 
-# Configure U-Boot to load generated initramfs
-printf "# Set initramfs file\nsetenv initramfs initramfs-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
-printf "\nbootz \${kernel_addr_r} \${ramdisk_addr_r} \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
+  # Configure U-Boot to load generated initramfs
+  printf "# Set initramfs file\nsetenv initramfs initramfs-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
+  printf "\nbootz \${kernel_addr_r} \${ramdisk_addr_r} \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
+  
 else # ENABLE_INITRAMFS=false
-# Remove initramfs from U-Boot mkfile
-sed -i '/.*initramfs.*/d' "${BOOT_DIR}/uboot.mkimage"
+  # Remove initramfs from U-Boot mkfile
+  sed -i '/.*initramfs.*/d' "${BOOT_DIR}/uboot.mkimage"
 
-if [ "$BUILD_KERNEL" = false ] ; then
-    # Remove dtbfile from U-Boot mkfile
-    sed -i '/.*dtbfile.*/d' "${BOOT_DIR}/uboot.mkimage"
-    printf "\nbootz \${kernel_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
-else
-    printf "\nbootz \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
-fi
+  printf "\nbootz \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
 fi
 
 # Set mkfile to use the correct dtb file

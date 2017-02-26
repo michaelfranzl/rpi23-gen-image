@@ -110,7 +110,6 @@ ENABLE_NONFREE=${ENABLE_NONFREE:=false}
 ENABLE_WIRELESS=${ENABLE_WIRELESS:=false}
 ENABLE_SOUND=${ENABLE_SOUND:=true}
 ENABLE_DBUS=${ENABLE_DBUS:=true}
-ENABLE_HWRANDOM=${ENABLE_HWRANDOM:=true}
 ENABLE_XORG=${ENABLE_XORG:=false}
 ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
@@ -175,7 +174,6 @@ if [ "$RPI_MODEL" = 2 ] ; then
 elif [ "$RPI_MODEL" = 3 ] ; then
   DTB_FILE=${RPI3_DTB_FILE}
   UBOOT_CONFIG=${RPI3_UBOOT_CONFIG}
-  BUILD_KERNEL=true
 else
   echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
   exit 1
@@ -194,7 +192,7 @@ if [ "$DISABLE_FBI" = true ] ; then
 fi
 
 # Add cryptsetup package to enable filesystem encryption
-if [ "$ENABLE_CRYPTFS" = true ]  && [ "$BUILD_KERNEL" = true ] ; then
+if [ "$ENABLE_CRYPTFS" = true ] ; then
   REQUIRED_PACKAGES="${REQUIRED_PACKAGES} cryptsetup"
   APT_INCLUDES="${APT_INCLUDES},cryptsetup"
 
@@ -206,7 +204,7 @@ if [ "$ENABLE_CRYPTFS" = true ]  && [ "$BUILD_KERNEL" = true ] ; then
 fi
 
 # Add initramfs generation tools
-if [ "$ENABLE_INITRAMFS" = true ] && [ "$BUILD_KERNEL" = true ] ; then
+if [ "$ENABLE_INITRAMFS" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES},initramfs-tools"
 fi
 
@@ -310,11 +308,6 @@ fi
 # Add alsa-utils package
 if [ "$ENABLE_SOUND" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES},alsa-utils"
-fi
-
-# Add rng-tools package
-if [ "$ENABLE_HWRANDOM" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},rng-tools"
 fi
 
 # Add user defined window manager package

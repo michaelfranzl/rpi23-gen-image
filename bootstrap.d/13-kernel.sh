@@ -133,11 +133,6 @@ ln -sf firmware/cmdline.txt "${R}/boot/cmdline.txt"
 mkdir -p "${R}/lib/modules-load.d/"
 install_readonly files/modules/rpi2.conf "${R}/lib/modules-load.d/rpi2.conf"
 
-# Load hardware random module at boot
-if [ "$ENABLE_HWRANDOM" = true ] && [ "$BUILD_KERNEL" = false ] ; then
-  sed -i "s/^# bcm2708_rng/bcm2708_rng/" "${R}/lib/modules-load.d/rpi2.conf"
-fi
-
 # Load sound module at boot
 if [ "$ENABLE_SOUND" = true ] ; then
   sed -i "s/^# snd_bcm2835/snd_bcm2835/" "${R}/lib/modules-load.d/rpi2.conf"
