@@ -150,7 +150,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,systemd,sysvinit-utils"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,systemd,sysvinit-utils,u-boot-tools"
 
 # Packages required for bootstrapping  (host PC)
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git"
@@ -256,8 +256,8 @@ if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
 fi
 
 # Check early if u-boot sources are downloaded
-if [ ! -d "${UBOOTSRC_DIR}" ] ; then
-  echo "error: cannot proceed: U-Boot bootloader source directory not existing"
+if [ ! -e "${UBOOTSRC_DIR}/u-boot.bin" ] ; then
+  echo "error: cannot proceed: U-Boot bootloader must be precompiled"
   cleanup
   exit 1
 fi

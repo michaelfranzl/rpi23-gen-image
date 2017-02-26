@@ -1,37 +1,256 @@
+# rpi23-gen-image
+
+## Introduction
+
+`rpi23-gen-image.sh` is an Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers.
+
+
 *Note by Michael Franzl:*
 
-This is a fork of the original project which is developed into a slightly different direction:
+This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
 * Only Debian releases 8 ("Stretch") and newer are supported
 * Only the unpatched/mainline/vanilla Linux kernel is supported (not the Rapberry Pi Kernel flavor)
 * The Linux mainline/vanilla kernel must be pre-cross-compiled on the PC running this script.
 * Only U-Boot booting will be supported
-* The U-Boot sources must be pre-downloaded
-* The RPi firmware blobs must be pre-downloaded
-* The installation of the system to an SD card must be done via copying or rsync, rather than creating and expanding ISO images.
+* The U-Boot sources must be pre-downloaded and pre-cross-compiled on the PC running this script.
+* The installation of the system to an SD card must be done via copying or rsync, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out.
 * The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel
 
 The above changes are aimed a higher bootstrapping speed, less complexity, less surprises.
 
-For usage of this fork, see my blog post:
+The status of this project is EXPERIMENTAL.
+
+
+See related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
+https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
+https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
 
 
-# rpi23-gen-image
+## Setting up host environment
 
-## Introduction
-`rpi23-gen-image.sh` is an advanced Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers.
+Basically, we will deboostrap a full system on a regular PC running Debian 9 ("Stretch"), which I will call the Host PC. Then we copy this system onto a SD card, then boot it on the Raspberry.
+
+In my case, the host PC's IP address is `hostsystem.local`. Below, you should replace that URL with your own mDNS record, or with a literal IP address.
+
+Do the following as root user.
+
+
+### Set up directories
+
+    PREFIX=/some/path/on/your/computer
+    mkdir $PREFIX
+    cd $PREFIX
+    git clone https://github.com/michaelfranzl/rpi23-gen-image.git
+    
+
+### Set up caching for apt
+
+This way, you won't have to re-download hundreds of megabytes of Debian packages from the Debian server every time you run the rpi23-gen-image script.
+
+    apt-get install apt-cacher-ng
+
+Study it's documentation and check the status page:
+
+    http://hostsystem.local:3142
+    
+
+### Install dependencies
+
+The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process.
+
+    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git crossbuild-essential-armhf bc device-tree-compiler
+    
+    
+    
+### Kernel compilation
+
+Get the latest mainline kernel (this is a large download, about 2GB). For a smaller download, consider downloading the latest stable kernel as .tar.xz from kernel.org. Then cross-compile it for the ARM CPU architecture:
+
+    cd $PREFIX
+    git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+    cd linux
+    make mrproper
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- multi_v7_defconfig
+
+If you want to get more control as to what is enabled in the kernel, run the graphical configuration tool at this point:
+
+    apt-get install libglib2.0-dev libgtk2.0-dev libglade2-dev
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
+
+Finally, compile the kernel. It should only take 5 minutes or so on 4 CPU cores of a modern PC.
+
+    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+    
+Verify that you have the required kernel image:
+
+    ls -l ./arch/arm/boot/zImage
+
+    
+    
+### U-Boot bootloader compilation
+
+    cd $PREFIX
+    git clone git://git.denx.de/u-boot.git
+    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
+    
+Verify that you have the required bootloader file:
+
+    ls -l ./u-boot.bin
+
+
+    
+### Pre-download Raspberry firmware
+
+The Raspberry Pi still needs some binary proprietary blobs for booting. Get them:
+
+    cd $PREFIX
+    mkdir -p raspberry-firmware/boot
+    cd raspberry-firmware/boot
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/bootcode.bin
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup.dat
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup_cd.dat
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup_x.dat
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/start.elf
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/start_cd.elf
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/start_x.elf
+
+    
+    
+### Build the system!
+
+This is where you call the `rpi23-gen-image.sh` script contained in this repository. The following is an example. You may want to modify the variables according to the section "Command-line parameters" below.
+
+
+    cd ${PREFIX}/rpi23-gen-image
+
+    APT_PROXY="hostsystem.local:3142/" \
+    APT_INCLUDES="avahi-daemon,rsync" \
+    RELEASE="stretch" \
+    PASSWORD="xxx" \
+    ENABLE_NONFREE=true \
+    UBOOTSRC_DIR=${PREFIX}/u-boot \
+    KERNELSRC_DIR=${PREFIX}/linux-mainline \
+    RPI_MODEL=2 \
+    RPI2_DTB_FILE="bcm2836-rpi-2-b.dtb" \
+    RPI_FIRMWARE_DIR="${PREFIX}/raspberry-firmware" \
+    ENABLE_IPTABLES=true \
+    ENABLE_REDUCE=true \
+    REDUCE_SSHD=true \
+    ENABLE_SOUND=false \
+    ./rpi23-gen-image.sh
+
+
+    
+### Install the system on a SD card
+
+Insert a SD card into the card reader of your host PC. You'll need two partitions on it. I'll leave as an exercise for the reader the creation of a  partition table according to the following output of `fdisk` for a 64GB card:
+
+    /dev/mmcblk0p1 * 2048 133119 131072 64M c W95 FAT32 (LBA)
+    /dev/mmcblk0p2 133120 125067263 124934144 59.6G 83 Linux
+
+The following will erase all contents of the SD card and install the system:
+
+    umount /dev/mmcblk0p1
+    umount /dev/mmcblk0p2
+
+    mkfs.vfat /dev/mmcblk0p1
+    mkfs.ext4 /dev/mmcblk0p2
+
+    mkdir -p /mnt/raspcard
+
+    mount /dev/mmcblk0p2 /mnt/raspcard
+    mkdir -p /mnt/raspcard/boot/firmware
+    mount /dev/mmcblk0p1 /mnt/raspcard/boot/firmware
+
+    rsync -a --delete ${PREFIX}/rpi23-gen-image/images/stretch/build/chroot/ /mnt/raspcard
+
+    umount /dev/mmcblk0p1
+    umount /dev/mmcblk0p2
+    
+
+### Try booting the Raspberry
+
+Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt after the kernel has loaded. Login with the login details you've provided above.
 
 
 
-## Build dependencies
-The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process. The script will check if all required packages are installed and missing packages will be installed automatically if confirmed by the user.
 
-    debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git
+### Finishing touches directly on the Raspberry
 
-## Command-line parameters
+Remember to change usernames and passwords!
+
+#### Install GUI
+
+If you want to install a graphical user interface, I would suggest the light-weight LXDE window manager. Gnome is still too massive to run even on a GPU-accelerated Raspberry.
+
+    apt-get install lightdm xorg lxde kxde-common task-lxde-desktop
+
+Reboot, and you should be greeted by the LightDM greeter screen!
+
+
+#### Test I2C Bus
+
+Also try I2C support:
+
+    apt-get install ic2-tools
+    i2cdetect -y 0
+    
+    
+#### Test GPU acceleration via VC4 kernel driver
+
+    apt-get install mesa-utils
+    glxgears
+    glxinfo | grep '^OpenGL'
+    
+Glxinfo should output:
+
+    OpenGL vendor string: Broadcom
+    OpenGL renderer string: Gallium 0.4 on VC4
+    OpenGL version string: 2.1 Mesa 12.0.3
+    OpenGL shading language version string: 1.20
+    OpenGL ES profile version string: OpenGL ES 2.0 Mesa 12.0.3
+    OpenGL ES profile shading language version string: OpenGL ES GLSL ES 1.0.16
+
+
+    
+#### Test onboard LEDs
+
+By default, the green onboard LED of the RPi blinks in a heartbeat pattern according to the system load (this is done by kernel feature LEDS_TRIGGER_HEARTBEAT).
+
+To use the green ACT LED as an indicator for disc access, execute:
+
+    echo mmc0 > /sys/class/leds/ACT/trigger
+
+To toggle the red PWR LED:
+
+    echo 0 > /sys/class/leds/PWR/brightness # Turn off
+    echo 1 > /sys/class/leds/PWR/brightness # Turn on 
+
+    
+### Kernel compilation directly on the Rasberry
+
+In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the ARCH and CROSS_COMPILE flags. Instead, you need the `-fno-pic` compiler flag for modules:
+
+    {{ configure kernel }}
+    make -j5 CFLAGS_MODULE="-fno-pic"
+    make modules_install # install into /lib/modules/
+    
+    # make backup of old kernel!
+    cp /boot/firmware/linuz.img /boot/firmware/linuz.old
+    
+    # install new kernel
+    cp ./arch/arm/boot/zImage /boot/firmware/linuz.img 
+    
+    # keep used configuration 
+    cp .config /boot/firmware/linux-config.txt 
+
+
+
+## Documentaion of all command-line parameters
 The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi23-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi23-gen-image.sh` script.
 
 
@@ -181,10 +400,10 @@ Enable automatic assignment of predictable, stable network interface names for a
 Install kernel headers with built kernel.
 
 ##### `KERNELSRC_DIR`=""
-Path to a directory of a pre-built and cross-compiled Linux mainline/vanilla kernel. $KERNELSRC_DIR
+Path to a directory of a pre-built and cross-compiled Linux mainline/vanilla kernel.
 
 ##### `UBOOTSRC_DIR`=""
-Path to a local copy of the u-boot sources. Download it with `git clone git://git.denx.de/u-boot.git`.
+Path to a directory of a pre-built and cross-compiled u-boot bootoader. Download it with `git clone git://git.denx.de/u-boot.git`.
 
 ##### `RPI_FIRMWARE_DIR`=""
 The directory containing a local copy of the firmware from the [RaspberryPi firmware project](https://github.com/raspberrypi/firmware). Default is to download the latest firmware directly from the project.
