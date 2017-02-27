@@ -260,7 +260,9 @@ To toggle the red PWR LED:
     echo 0 > /sys/class/leds/PWR/brightness # Turn off
     echo 1 > /sys/class/leds/PWR/brightness # Turn on 
     
-    
+Or use the red PWR LED as heartbeat indicator:
+
+    echo heartbeat > /sys/class/leds/PWR/trigger
 
 #### Install GUI
 
