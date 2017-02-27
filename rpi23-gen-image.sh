@@ -37,17 +37,11 @@ set -x
 
 # Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
-
-RPI2_DTB_FILE=${RPI2_DTB_FILE:=bcm2709-rpi-2-b.dtb}
-RPI2_UBOOT_CONFIG=${RPI2_UBOOT_CONFIG:=rpi_2_defconfig}
-
-RPI3_DTB_FILE=${RPI3_DTB_FILE:=bcm2710-rpi-3-b.dtb}
-RPI3_UBOOT_CONFIG=${RPI3_UBOOT_CONFIG:=rpi_3_32b_defconfig}
+RPI3_MODEL_ARCH_BITS=${RPI3_MODEL_ARCH_BITS:=32}
 
 # Debian release
-RELEASE=${RELEASE:=stretch}
-KERNEL_ARCH=${KERNEL_ARCH:=arm}
-RELEASE_ARCH=${RELEASE_ARCH:=armhf}
+DEBIAN_RELEASE=${DEBIAN_RELEASE:=stretch}
+
 CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
 KERNEL_IMAGE=${KERNEL_IMAGE:=linuz.img}
 QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
@@ -57,7 +51,7 @@ FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/
 WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
 
 # Build directories
-BASEDIR="$(pwd)/images/${RELEASE}"
+BASEDIR="$(pwd)/images/${DEBIAN_RELEASE}"
 BUILDDIR="${BASEDIR}/build"
 
 # Chroot directories
@@ -68,11 +62,8 @@ BOOT_DIR="${R}/boot/firmware"
 KERNEL_DIR="${R}/usr/src/linux"
 WLAN_FIRMWARE_DIR="${R}/lib/firmware/brcm"
 
-# Firmware directory: Blank if download from github
-RPI_FIRMWARE_DIR=${RPI_FIRMWARE_DIR:=""}
-
 # General settings
-HOSTNAME=${HOSTNAME:=rpi${RPI_MODEL}-${RELEASE}}
+HOSTNAME=${HOSTNAME:=rpi${RPI_MODEL}-${DEBIAN_RELEASE}}
 PASSWORD=${PASSWORD:=raspberry}
 DEFLOCAL=${DEFLOCAL:="en_US.UTF-8"}
 TIMEZONE=${TIMEZONE:="Europe/Berlin"}
@@ -96,7 +87,7 @@ NET_NTP_1=${NET_NTP_1:=""}
 NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
-APT_PROXY=${APT_PROXY:=""}
+APT_PROXY=${APT_PROXY:="localhost:3142"}
 APT_SERVER=${APT_SERVER:="ftp.debian.org"}
 
 # Feature settings
@@ -105,15 +96,15 @@ ENABLE_IPV6=${ENABLE_IPV6:=true}
 ENABLE_SSHD=${ENABLE_SSHD:=true}
 ENABLE_NONFREE=${ENABLE_NONFREE:=false}
 ENABLE_WIRELESS=${ENABLE_WIRELESS:=false}
-ENABLE_SOUND=${ENABLE_SOUND:=true}
+ENABLE_SOUND=${ENABLE_SOUND:=false}
 ENABLE_DBUS=${ENABLE_DBUS:=true}
 ENABLE_XORG=${ENABLE_XORG:=false}
 ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
 USER_NAME=${USER_NAME:="pi"}
-ENABLE_ROOT=${ENABLE_ROOT:=false}
-ENABLE_ROOT_SSH=${ENABLE_ROOT_SSH:=false}
+ENABLE_ROOT=${ENABLE_ROOT:=true}
+ENABLE_ROOT_SSH=${ENABLE_ROOT_SSH:=true}
 
 # Advanced settings
 ENABLE_MINBASE=${ENABLE_MINBASE:=false}
@@ -150,25 +141,35 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,dialog,systemd,sysvinit-utils,u-boot-tools"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,systemd,u-boot-tools" # sysvinit-utils
 
 # Packages required for bootstrapping  (host PC)
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git"
 MISSING_PACKAGES=""
 
 
-# Required packages to compile u-boot inside of chroot
-COMPILER_PACKAGES="build-essential bc device-tree-compiler"
-
 set +x
 
 # Set Raspberry Pi model specific configuration
 if [ "$RPI_MODEL" = 2 ] ; then
-  DTB_FILE=${RPI2_DTB_FILE}
-  UBOOT_CONFIG=${RPI2_UBOOT_CONFIG}
+  DTB_FILE=bcm2836-rpi-2-b.dtb
+  DEBIAN_RELEASE_ARCH=armhf
+  KERNEL_ARCH=arm
+  
 elif [ "$RPI_MODEL" = 3 ] ; then
-  DTB_FILE=${RPI3_DTB_FILE}
-  UBOOT_CONFIG=${RPI3_UBOOT_CONFIG}
+  DTB_FILE=bcm2837-rpi-3-b.dtb
+  
+  if [ "$RPI3_MODEL_ARCH_BITS" = 32 ]; then
+    DEBIAN_RELEASE_ARCH=armhf
+    KERNEL_ARCH=arm
+  else
+    #DEBIAN_RELEASE_ARCH=arm64
+    #KERNEL_ARCH=arm64
+    #CROSSCOMPILER=aarch64-linux-gnu-
+    echo "error: Raspberry Pi architecture bits ${RPI3_MODEL_ARCH_BITS} is not yet supported!"
+    exit 1
+  fi
+  
 else
   echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
   exit 1
@@ -177,6 +178,28 @@ fi
 # Check if the internal wireless interface is supported by the RPi model
 if [ "$ENABLE_WIRELESS" = true ] && [ "$RPI_MODEL" != 3 ] ; then
   echo "error: The selected Raspberry Pi model has no internal wireless interface"
+  exit 1
+fi
+
+
+# Fail early: Is kernel ready?
+if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
+  echo "error: cannot proceed: Linux mainline kernel must be precompiled"
+  cleanup
+  exit 1
+fi
+
+# Fail early: Is u-boot ready?
+if [ ! -e "${UBOOTSRC_DIR}/u-boot.bin" ] ; then
+  echo "error: cannot proceed: U-Boot bootloader must be precompiled"
+  cleanup
+  exit 1
+fi
+
+# Fail early: Is firmware ready?
+if [ ! -d "$RPI_FIRMWARE_DIR" ] ; then
+  echo "error: Raspberry Pi firmware directory not specified or not found!"
+  cleanup
   exit 1
 fi
 
@@ -248,19 +271,6 @@ if [ -e "$BUILDDIR" ] ; then
   exit 1
 fi
 
-# Check early if kernel is pre-compiled
-if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
-  echo "error: cannot proceed: Linux mainline kernel must be precompiled"
-  cleanup
-  exit 1
-fi
-
-# Check early if u-boot sources are downloaded
-if [ ! -e "${UBOOTSRC_DIR}/u-boot.bin" ] ; then
-  echo "error: cannot proceed: U-Boot bootloader must be precompiled"
-  cleanup
-  exit 1
-fi
 
 # Setup chroot directory
 mkdir -p "${R}"

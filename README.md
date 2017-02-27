@@ -9,13 +9,14 @@
 
 This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
-* Only Debian releases 8 ("Stretch") and newer are supported
-* Only the unpatched/mainline/vanilla Linux kernel is supported (not the Rapberry Pi Kernel flavor)
-* The Linux mainline/vanilla kernel must be pre-cross-compiled on the PC running this script.
-* Only U-Boot booting will be supported
-* The U-Boot sources must be pre-downloaded and pre-cross-compiled on the PC running this script.
-* The installation of the system to an SD card must be done via copying or rsync, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out.
-* The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel
+* Only Debian releases 9 ("Stretch") and newer are supported.
+* Only the unpatched/mainline/vanilla Linux kernel is supported (not the Rapberry Pi Kernel flavor).
+* The Linux mainline/vanilla kernel must be pre-cross-compiled on the PC running this script (instructions below).
+* Only U-Boot booting is supported.
+* The U-Boot sources must be pre-downloaded and pre-cross-compiled on the PC running this script (instructions below).
+* An apt caching proxy server must be installed to save bandwidth (instructions below).
+* The installation of the system to an SD card is done via rsync copying, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out (instructions below).
+* The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel.
 
 The above changes are aimed a higher bootstrapping speed, less complexity, less surprises.
 
@@ -34,28 +35,31 @@ https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainli
 
 ## Setting up host environment
 
-Basically, we will deboostrap a full system on a regular PC running Debian 9 ("Stretch"), which I will call the Host PC. Then we copy this system onto a SD card, then boot it on the Raspberry.
+Basically, we will deboostrap a minimal *Debian 9 ("Stretch")* system for the Raspberry on a regular PC running also *Debian 9 ("Stretch")*. Then we copy that system onto a SD card, then boot it on the Raspberry.
 
-In my case, the host PC's IP address is `hostsystem.local`. Below, you should replace that URL with your own mDNS record, or with a literal IP address.
+We will work with the following directories:
 
-Do the following as root user.
+    ~/workspace
+      |- rpi23-gen-image
+      |- linux
+      |- u-boot
+      |- raspberry-firmware
 
+Set up your working directory:
 
-### Set up directories
+    mkdir workspace
+    cd workspace
 
-    PREFIX=/some/path/on/your/computer
-    mkdir $PREFIX
-    cd $PREFIX
-    git clone https://github.com/michaelfranzl/rpi23-gen-image.git
+Do the following steps as root user.
     
 
 ### Set up caching for apt
 
-This way, you won't have to re-download hundreds of megabytes of Debian packages from the Debian server every time you run the rpi23-gen-image script.
+This way, you won't have to re-download hundreds of megabytes of Debian packages from the Debian server every time you run the `rpi23-gen-image` script.
 
     apt-get install apt-cacher-ng
 
-Study it's documentation and check the status page:
+Check its status page:
 
     http://hostsystem.local:3142
     
@@ -64,40 +68,69 @@ Study it's documentation and check the status page:
 
 The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process.
 
-    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git crossbuild-essential-armhf bc device-tree-compiler
+    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc device-tree-compiler crossbuild-essential-armhf
     
-    
+
     
 ### Kernel compilation
 
-Get the latest mainline kernel (this is a large download, about 2GB). For a smaller download, consider downloading the latest stable kernel as .tar.xz from kernel.org. Then cross-compile it for the ARM CPU architecture:
+Get the latest Linux mainline kernel. This is a very large download, about 2GB. (For a smaller download of about 90 MB, consider downloading the latest stable kernel as .tar.xz from https://kernel.org.)
 
-    cd $PREFIX
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
+    
+Confirmed working revision (approx. version 4.10, Feb 2017): 60e8d3e11645a1b9c4197d9786df3894332c1685
+
+A working configuration file for this Linux kernel revision is included in this repository (`working-linux-config.txt`).
+    
+If you want to generate the default `.config` file that is also working on the Raspberry, execute
+
     make mrproper
     make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- multi_v7_defconfig
-
-If you want to get more control as to what is enabled in the kernel, run the graphical configuration tool at this point:
+    
+Whichever `.config` file you have now, if you want to get more control as to what is enabled in the kernel, you can run the graphical configuration tool at this point:
 
     apt-get install libglib2.0-dev libgtk2.0-dev libglade2-dev
-    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
+    make AARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
+    
+Before compiling the kernel, back up your `.config` file so that you don't lose it after the next `make mrproper`:
 
-Finally, compile the kernel. It should only take 5 minutes or so on 4 CPU cores of a modern PC.
+    cp .config ../kernelconfig-backup.txt
+    
+
+#### Compiling the kernel
+
+Clean the sources:
+
+    make mrproper
+    
+Optionally, copy your previously backed up `.config`:
+
+    cp ../kernelconfig-backup.txt .config
+
+Run the compilation on 4 CPU cores. This takes about 10 minutes on a modern PC:
 
     make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
     
 Verify that you have the required kernel image:
 
     ls -l ./arch/arm/boot/zImage
-
     
     
 ### U-Boot bootloader compilation
 
-    cd $PREFIX
+    cd ..
     git clone git://git.denx.de/u-boot.git
+    
+Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
+
+Then, for a RPi model 2:
+
     make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
+    
+For a RPi model 3 (untested!):
+
+    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_3_32b_defconfig all
     
 Verify that you have the required bootloader file:
 
@@ -109,41 +142,47 @@ Verify that you have the required bootloader file:
 
 The Raspberry Pi still needs some binary proprietary blobs for booting. Get them:
 
-    cd $PREFIX
+    cd ..
     mkdir -p raspberry-firmware/boot
     cd raspberry-firmware/boot
     wget https://github.com/raspberrypi/firmware/raw/master/boot/bootcode.bin
-    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup.dat
     wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup_cd.dat
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup.dat
     wget https://github.com/raspberrypi/firmware/raw/master/boot/fixup_x.dat
-    wget https://github.com/raspberrypi/firmware/raw/master/boot/start.elf
     wget https://github.com/raspberrypi/firmware/raw/master/boot/start_cd.elf
+    wget https://github.com/raspberrypi/firmware/raw/master/boot/start.elf
     wget https://github.com/raspberrypi/firmware/raw/master/boot/start_x.elf
-
+    
+Confirmed working revision: bf5201e9682bf36370bc31d26b37fd4d84e1cfca
     
     
 ### Build the system!
 
-This is where you call the `rpi23-gen-image.sh` script contained in this repository. The following is an example. You may want to modify the variables according to the section "Command-line parameters" below.
 
+This is where you call the `rpi23-gen-image.sh` script contained in this repository.
 
-    cd ${PREFIX}/rpi23-gen-image
+    cd ../..
+    git clone https://github.com/michaelfranzl/rpi23-gen-image.git
+    cd rpi23-gen-image
 
-    APT_PROXY="hostsystem.local:3142/" \
-    APT_INCLUDES="avahi-daemon,rsync" \
-    RELEASE="stretch" \
+For example:
+
+    DEBIAN_RELEASE="stretch" \
+    USER_NAME="pi" \
     PASSWORD="xxx" \
-    ENABLE_NONFREE=true \
-    UBOOTSRC_DIR=${PREFIX}/u-boot \
-    KERNELSRC_DIR=${PREFIX}/linux-mainline \
+    APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync"
+    UBOOTSRC_DIR=$(pwd)/../u-boot \
+    KERNELSRC_DIR=$(pwd)/../linux \
     RPI_MODEL=2 \
-    RPI2_DTB_FILE="bcm2836-rpi-2-b.dtb" \
     RPI_FIRMWARE_DIR="${PREFIX}/raspberry-firmware" \
     ENABLE_IPTABLES=true \
     ENABLE_REDUCE=true \
     REDUCE_SSHD=true \
-    ENABLE_SOUND=false \
     ./rpi23-gen-image.sh
+
+You may want to modify the variables according to the section "Command-line parameters" below.
+
+The file `example.sh` in this repostory contains a working example.
 
 
     
@@ -154,7 +193,7 @@ Insert a SD card into the card reader of your host PC. You'll need two partition
     /dev/mmcblk0p1 * 2048 133119 131072 64M c W95 FAT32 (LBA)
     /dev/mmcblk0p2 133120 125067263 124934144 59.6G 83 Linux
 
-The following will erase all contents of the SD card and install the system:
+The following commands will erase all contents of the SD card and install the system (copy via rsync) on the SD card:
 
     umount /dev/mmcblk0p1
     umount /dev/mmcblk0p2
@@ -168,15 +207,19 @@ The following will erase all contents of the SD card and install the system:
     mkdir -p /mnt/raspcard/boot/firmware
     mount /dev/mmcblk0p1 /mnt/raspcard/boot/firmware
 
-    rsync -a --delete ${PREFIX}/rpi23-gen-image/images/stretch/build/chroot/ /mnt/raspcard
+    rsync -a ./images/stretch/build/chroot/ /mnt/raspcard
 
     umount /dev/mmcblk0p1
     umount /dev/mmcblk0p2
     
 
+*Note about SD cards:* Cheap (or sometimes even professional) SD cards can be weird at times. I've repeatedly noticed corrupt/truncated files even after proper rsync and proper umount on different brand new SD cards. TODO: Add a method to verify all file checksums after rsync.
+
+
+    
 ### Try booting the Raspberry
 
-Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt after the kernel has loaded. Login with the login details you've provided above.
+Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt after the kernel has loaded. Login with the login details you've provided to the script.
 
 
 
@@ -235,9 +278,10 @@ To toggle the red PWR LED:
     
 ### Kernel compilation directly on the Rasberry
 
-In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the ARCH and CROSS_COMPILE flags. Instead, you need the `-fno-pic` compiler flag for modules:
+In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the `ARCH` and `CROSS_COMPILE` flags. Instead, you need the `-fno-pic` compiler flag for modules:
 
     {{ configure kernel }}
+    
     make -j5 CFLAGS_MODULE="-fno-pic"
     make modules_install # install into /lib/modules/
     
@@ -253,6 +297,7 @@ In case you want to compile and deploy another Mainline Linux kernel directly on
 
 
 ## Documentaion of all command-line parameters
+
 The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi23-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi23-gen-image.sh` script.
 
 
@@ -270,7 +315,7 @@ A comma separated list of additional packages to be installed during bootstrappi
 ##### `RPI_MODEL`=2
 Specifiy the target Raspberry Pi hardware model. The script at this time supports the Raspberry Pi models `2` and `3`.
 
-##### `RELEASE`="stretch"
+##### `DEBIAN_RELEASE`="stretch"
 Set the desired Debian release name. Only use "stretch" or newer.
 
 ##### `HOSTNAME`="rpi$RPI_MODEL-$RELEASE"
@@ -349,7 +394,7 @@ Download and install the [closed-source firmware binary blob](https://github.com
 ##### `ENABLE_RSYSLOG`=true
 If set to false, disable and uninstall rsyslog (so logs will be available only in journal files)
 
-##### `ENABLE_SOUND`=true
+##### `ENABLE_SOUND`=false
 Enable sound hardware and install Advanced Linux Sound Architecture.
 
 ##### `ENABLE_DBUS`=true
@@ -408,7 +453,7 @@ Path to a directory of a pre-built and cross-compiled Linux mainline/vanilla ker
 Path to a directory of a pre-built and cross-compiled u-boot bootoader. Download it with `git clone git://git.denx.de/u-boot.git`.
 
 ##### `RPI_FIRMWARE_DIR`=""
-The directory containing a local copy of the firmware from the [RaspberryPi firmware project](https://github.com/raspberrypi/firmware). Default is to download the latest firmware directly from the project.
+The directory containing a local copy of the firmware from the [RaspberryPi firmware project](https://github.com/raspberrypi/firmware). The directory must be specified and must exist.
 
 #### Reduce disk usage:
 The following list of parameters is ignored if `ENABLE_REDUCE`=false.

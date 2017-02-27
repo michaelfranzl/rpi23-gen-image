@@ -53,25 +53,15 @@ make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" m
 
 
 
-if [ -n "$RPI_FIRMWARE_DIR" ] && [ -d "$RPI_FIRMWARE_DIR" ] ; then
-  # Install boot binaries from local directory
-  cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
-  cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
-  cp ${RPI_FIRMWARE_DIR}/boot/fixup_cd.dat ${BOOT_DIR}/fixup_cd.dat
-  cp ${RPI_FIRMWARE_DIR}/boot/fixup_x.dat ${BOOT_DIR}/fixup_x.dat
-  cp ${RPI_FIRMWARE_DIR}/boot/start.elf ${BOOT_DIR}/start.elf
-  cp ${RPI_FIRMWARE_DIR}/boot/start_cd.elf ${BOOT_DIR}/start_cd.elf
-  cp ${RPI_FIRMWARE_DIR}/boot/start_x.elf ${BOOT_DIR}/start_x.elf
-else
-  # Install latest boot binaries from raspberry/firmware github
-  wget -q -O "${BOOT_DIR}/bootcode.bin" "${FIRMWARE_URL}/bootcode.bin"
-  wget -q -O "${BOOT_DIR}/fixup.dat" "${FIRMWARE_URL}/fixup.dat"
-  wget -q -O "${BOOT_DIR}/fixup_cd.dat" "${FIRMWARE_URL}/fixup_cd.dat"
-  wget -q -O "${BOOT_DIR}/fixup_x.dat" "${FIRMWARE_URL}/fixup_x.dat"
-  wget -q -O "${BOOT_DIR}/start.elf" "${FIRMWARE_URL}/start.elf"
-  wget -q -O "${BOOT_DIR}/start_cd.elf" "${FIRMWARE_URL}/start_cd.elf"
-  wget -q -O "${BOOT_DIR}/start_x.elf" "${FIRMWARE_URL}/start_x.elf"
-fi
+
+cp ${RPI_FIRMWARE_DIR}/boot/bootcode.bin ${BOOT_DIR}/bootcode.bin
+cp ${RPI_FIRMWARE_DIR}/boot/fixup_cd.dat ${BOOT_DIR}/fixup_cd.dat
+cp ${RPI_FIRMWARE_DIR}/boot/fixup.dat ${BOOT_DIR}/fixup.dat
+cp ${RPI_FIRMWARE_DIR}/boot/fixup_x.dat ${BOOT_DIR}/fixup_x.dat
+cp ${RPI_FIRMWARE_DIR}/boot/start_cd.elf ${BOOT_DIR}/start_cd.elf
+cp ${RPI_FIRMWARE_DIR}/boot/start.elf ${BOOT_DIR}/start.elf
+cp ${RPI_FIRMWARE_DIR}/boot/start_x.elf ${BOOT_DIR}/start_x.elf
+
 
 
 
@@ -101,7 +91,7 @@ else
 fi
 
 # Set init to systemd if required by Debian release
-if [ "$RELEASE" = "stretch" ] ; then
+if [ "$DEBIAN_RELEASE" = "stretch" ] ; then
   CMDLINE="${CMDLINE} init=/bin/systemd"
 fi
 

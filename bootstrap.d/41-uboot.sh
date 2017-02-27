@@ -45,4 +45,6 @@ sed -i "s/^\(fatload mmc 0:1 \${kernel_addr_r} \).*/\1${KERNEL_IMAGE}/" "${BOOT_
 sed -i "/./,\$!d" "${BOOT_DIR}/uboot.mkimage"
 
 # Generate U-Boot bootloader image
+# http://www.denx.de/wiki/view/DULG/UBootScripts
+# http://www.denx.de/wiki/view/DULG/UBootEnvVariables
 chroot_exec /usr/bin/mkimage -A "${KERNEL_ARCH}" -O linux -T script -C none -a 0x00000000 -e 0x00000000 -n "RPi${RPI_MODEL}" -d /boot/firmware/uboot.mkimage /boot/firmware/boot.scr
