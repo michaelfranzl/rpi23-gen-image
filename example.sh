@@ -3,7 +3,7 @@
 DEBIAN_RELEASE="stretch" \
 USER_NAME="pi" \
 PASSWORD="xxx" \
-APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync"
+APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync" \
 UBOOTSRC_DIR=$(pwd)/../u-boot \
 KERNELSRC_DIR=$(pwd)/../linux \
 RPI_MODEL=2 \
