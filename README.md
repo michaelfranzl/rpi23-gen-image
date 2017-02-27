@@ -219,7 +219,11 @@ The following commands will erase all contents of the SD card and install the sy
     
 ### Try booting the Raspberry
 
-Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt after the kernel has loaded. Login with the login details you've provided to the script.
+Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt on the screen. Login with the login details you've passed into the script (usename "pi", password "xxx").
+
+Alternatively, if you have included "avahi-daemon" in your APT_INCLUDES, you simply can log in via SSH, even without knowing its IP address:
+
+    ssh pi@rpi2-stretch.local
 
 
 
