@@ -174,7 +174,7 @@ For example:
     UBOOTSRC_DIR=$(pwd)/../u-boot \
     KERNELSRC_DIR=$(pwd)/../linux \
     RPI_MODEL=2 \
-    RPI_FIRMWARE_DIR="${PREFIX}/raspberry-firmware" \
+    RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
     ENABLE_IPTABLES=true \
     ENABLE_REDUCE=true \
     REDUCE_SSHD=true \

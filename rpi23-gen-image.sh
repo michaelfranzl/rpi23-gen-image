@@ -183,21 +183,18 @@ fi
 # Fail early: Is kernel ready?
 if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
   echo "error: cannot proceed: Linux mainline kernel must be precompiled"
-  cleanup
   exit 1
 fi
 
 # Fail early: Is u-boot ready?
 if [ ! -e "${UBOOTSRC_DIR}/u-boot.bin" ] ; then
   echo "error: cannot proceed: U-Boot bootloader must be precompiled"
-  cleanup
   exit 1
 fi
 
 # Fail early: Is firmware ready?
 if [ ! -d "$RPI_FIRMWARE_DIR" ] ; then
   echo "error: Raspberry Pi firmware directory not specified or not found!"
-  cleanup
   exit 1
 fi
 
