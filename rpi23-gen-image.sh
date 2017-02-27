@@ -98,8 +98,6 @@ ENABLE_NONFREE=${ENABLE_NONFREE:=false}
 ENABLE_WIRELESS=${ENABLE_WIRELESS:=false}
 ENABLE_SOUND=${ENABLE_SOUND:=false}
 ENABLE_DBUS=${ENABLE_DBUS:=true}
-ENABLE_XORG=${ENABLE_XORG:=false}
-ENABLE_WM=${ENABLE_WM:=""}
 ENABLE_RSYSLOG=${ENABLE_RSYSLOG:=true}
 ENABLE_USER=${ENABLE_USER:=true}
 USER_NAME=${USER_NAME:="pi"}
@@ -316,18 +314,6 @@ if [ "$ENABLE_SOUND" = true ] ; then
   APT_INCLUDES="${APT_INCLUDES},alsa-utils"
 fi
 
-# Add user defined window manager package
-if [ -n "$ENABLE_WM" ] ; then
-  APT_INCLUDES="${APT_INCLUDES},${ENABLE_WM}"
-
-  # Enable xorg package dependencies
-  ENABLE_XORG=true
-fi
-
-# Add xorg package
-if [ "$ENABLE_XORG" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},xorg"
-fi
 
 # Replace selected packages with smaller clones
 if [ "$ENABLE_REDUCE" = true ] ; then

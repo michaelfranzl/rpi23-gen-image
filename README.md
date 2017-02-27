@@ -91,7 +91,7 @@ If you want to generate the default `.config` file that is also working on the R
 Whichever `.config` file you have now, if you want to get more control as to what is enabled in the kernel, you can run the graphical configuration tool at this point:
 
     apt-get install libglib2.0-dev libgtk2.0-dev libglade2-dev
-    make AARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
+    make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
     
 Before compiling the kernel, back up your `.config` file so that you don't lose it after the next `make mrproper`:
 
@@ -228,6 +228,40 @@ Insert the SD card into the Raspberry Pi, and if everything went well, you shoul
 
 Remember to change usernames and passwords!
 
+
+#### Network Time Synchronization
+
+The Raspberry doesn't have a real time clock. But the default `systemd` syncs time from the network by default. Check the output of `timedatectl`
+
+
+#### Hardware Random Number Generator
+
+The working device node is available at `/dev/hwrng`
+
+
+#### I2C Bus
+
+Also try I2C support:
+
+    apt-get install ic2-tools
+    i2cdetect -y 0
+    
+    
+#### Test onboard LEDs
+
+By default, the green onboard LED of the RPi blinks in a heartbeat pattern according to the system load (this is done by kernel feature LEDS_TRIGGER_HEARTBEAT).
+
+To use the green ACT LED as an indicator for disc access, execute:
+
+    echo mmc0 > /sys/class/leds/ACT/trigger
+
+To toggle the red PWR LED:
+
+    echo 0 > /sys/class/leds/PWR/brightness # Turn off
+    echo 1 > /sys/class/leds/PWR/brightness # Turn on 
+    
+    
+
 #### Install GUI
 
 If you want to install a graphical user interface, I would suggest the light-weight LXDE window manager. Gnome is still too massive to run even on a GPU-accelerated Raspberry.
@@ -236,13 +270,6 @@ If you want to install a graphical user interface, I would suggest the light-wei
 
 Reboot, and you should be greeted by the LightDM greeter screen!
 
-
-#### Test I2C Bus
-
-Also try I2C support:
-
-    apt-get install ic2-tools
-    i2cdetect -y 0
     
     
 #### Test GPU acceleration via VC4 kernel driver
@@ -262,18 +289,7 @@ Glxinfo should output:
 
 
     
-#### Test onboard LEDs
 
-By default, the green onboard LED of the RPi blinks in a heartbeat pattern according to the system load (this is done by kernel feature LEDS_TRIGGER_HEARTBEAT).
-
-To use the green ACT LED as an indicator for disc access, execute:
-
-    echo mmc0 > /sys/class/leds/ACT/trigger
-
-To toggle the red PWR LED:
-
-    echo 0 > /sys/class/leds/PWR/brightness # Turn off
-    echo 1 > /sys/class/leds/PWR/brightness # Turn on 
 
     
 ### Kernel compilation directly on the Rasberry
