@@ -233,6 +233,11 @@ Alternatively, if you have included "avahi-daemon" in your APT_INCLUDES, you sim
 Remember to change usernames and passwords!
 
 
+#### Check uber-low RAM usage
+
+Running `top` shows that the freshly booted system uses only 28 MB out of the availabl 1GB RAM!
+
+
 #### Network Time Synchronization
 
 The Raspberry doesn't have a real time clock. But the default `systemd` syncs time from the network by default. Check the output of `timedatectl`
@@ -267,6 +272,32 @@ To toggle the red PWR LED:
 Or use the red PWR LED as heartbeat indicator:
 
     echo heartbeat > /sys/class/leds/PWR/trigger
+    
+    
+#### Notes about systemd
+
+`systemd` now replaces decades-old low-level system administration tools. Here is a quick cheat sheet:
+
+Reboot machine:
+
+    systemctl reboot
+    
+Halt machine (this actually turns off the RPi):
+
+    systemctl halt
+    
+Show all networking interfaces:
+
+    networkctl
+    
+Show status of the Ethernet adapter:
+
+    networkctl status eth0
+    
+Show status of the local DNS caching client:
+
+    systemctl status systemd-resolved
+    
 
 #### Install GUI
 
