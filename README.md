@@ -18,7 +18,8 @@ This is a fork of the original project by github user "drtyhlpr". My fork is dev
 * The installation of the system to an SD card is done via rsync copying, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out (instructions below).
 * The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel.
 
-The above changes are aimed at higher bootstrapping speed, less complexity of the script, and less surprises. The user will have to do more manual work, but that is a good thing: *"give a man a fish and you feed him for a day; teach a man to fish and you feed him for a lifetime"*
+The above changes are aimed at higher bootstrapping speed, less complexity of the script, and less surprises. The user will have to do more manual work, but that is a good thing: *"Give a man a fish and you feed him for a day; Teach a man to fish and you feed him for a lifetime."* **For this reason, I won't offer precompiled SD card images.**
+
 
 The status of this project is EXPERIMENTAL.
 
