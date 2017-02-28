@@ -61,7 +61,7 @@ This way, you won't have to re-download hundreds of megabytes of Debian packages
 
 Check its status page:
 
-    http://hostsystem.local:3142
+    http://localhost:3142
     
 
 ### Install dependencies
@@ -171,8 +171,8 @@ For example:
     USER_NAME="pi" \
     PASSWORD="xxx" \
     APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync,vim" \
-    UBOOTSRC_DIR=$(pwd)/../u-boot \
-    KERNELSRC_DIR=$(pwd)/../linux \
+    UBOOTSRC_DIR="$(pwd)/../u-boot" \
+    KERNELSRC_DIR="$(pwd)/../linux" \
     RPI_MODEL=2 \
     RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
     ENABLE_IPTABLES=true \
@@ -240,7 +240,7 @@ Running `top` shows that the freshly booted system uses only 28 MB out of the av
 
 #### Network Time Synchronization
 
-The Raspberry doesn't have a real time clock. But the default `systemd` syncs time from the network by default. Check the output of `timedatectl`
+The Raspberry doesn't have a real time clock. But the default `systemd` syncs time from the network by default. Check the output of `timedatectl`.
 
 
 #### Hardware Random Number Generator
@@ -331,10 +331,8 @@ Glxinfo should output:
     
 ### Kernel compilation directly on the Rasberry
 
-In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the `ARCH` and `CROSS_COMPILE` flags. Instead, you need the `-fno-pic` compiler flag for modules:
+In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the `ARCH` and `CROSS_COMPILE` flags. Instead, you need the `-fno-pic` compiler flag for modules. The following is just the compilation step:
 
-    {{ configure kernel }}
-    
     make -j5 CFLAGS_MODULE="-fno-pic"
     make modules_install # install into /lib/modules/
     
