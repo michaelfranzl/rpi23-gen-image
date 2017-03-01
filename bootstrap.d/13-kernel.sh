@@ -42,7 +42,7 @@ install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"
 
 # Copy device tree binaries
 
-if [ "$RPI_MODEL" = 3 ] ; then
+if [ "$KERNEL_FLAVOR" = "raspberry" ] ; then
   # Copy dts and dtb device tree sources and binaries
   mkdir "${BOOT_DIR}/overlays"
   install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/"*.dtb "${BOOT_DIR}/"
@@ -50,6 +50,7 @@ if [ "$RPI_MODEL" = 3 ] ; then
   install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/README" "${BOOT_DIR}/overlays/README"
   
 else
+  # vanilla kernel
   install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
 fi
 

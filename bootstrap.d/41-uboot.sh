@@ -6,7 +6,7 @@
 . ./functions.sh
 
 
-if [ "$RPI_MODEL" = 2 ] ; then
+if [ "$KERNEL_FLAVOR" = "vanilla" ] ; then
     # Copy compiled bootloader binary and set config.txt to load it
     install_readonly "${UBOOTSRC_DIR}/u-boot.bin" "${BOOT_DIR}/u-boot.bin"
 

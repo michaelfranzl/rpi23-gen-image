@@ -126,7 +126,7 @@ Then, for a RPi model 2:
 
     make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
     
-For a RPi model 3 (untested!):
+For a RPi model 3:
 
     make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_3_32b_defconfig all
     
