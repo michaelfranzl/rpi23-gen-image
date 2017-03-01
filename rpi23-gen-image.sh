@@ -116,6 +116,7 @@ ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
 KERNEL_HEADERS=${KERNEL_HEADERS:=true}
 KERNELSRC_DIR=${KERNELSRC_DIR:=""}
 UBOOTSRC_DIR=${UBOOTSRC_DIR:=""}
+KERNEL_FLAVOR=${KERNEL_FLAVOR:="raspberry"}
 
 # Reduce disk usage settings
 REDUCE_APT=${REDUCE_APT:=true}
@@ -148,14 +149,35 @@ MISSING_PACKAGES=""
 
 set +x
 
+
+
 # Set Raspberry Pi model specific configuration
 if [ "$RPI_MODEL" = 2 ] ; then
-  DTB_FILE=bcm2836-rpi-2-b.dtb
+
+  if [ "$KERNEL_FLAVOR" = "vanilla" ]; then
+    DTB_FILE=bcm2836-rpi-2-b.dtb
+  elif [ "$KERNEL_FLAVOR" = "raspberry" ]; then
+    DTB_FILE=bcm2709-rpi-2-b.dtb
+  else
+    echo "error: Unknown Linux kernel flavor"
+    exit 1
+  fi
+  
   DEBIAN_RELEASE_ARCH=armhf
   KERNEL_ARCH=arm
   
+  
 elif [ "$RPI_MODEL" = 3 ] ; then
-  DTB_FILE=bcm2837-rpi-3-b.dtb
+
+  if [ "$KERNEL_FLAVOR" = "vanilla" ]; then
+    echo "error: Vanilla Kernel on Raspberry Pi 3 is not yet supported!"
+    exit 1
+  elif [ "$KERNEL_FLAVOR" = "raspberry" ]; then
+    DTB_FILE=bcm2710-rpi-3-b.dtb
+  else
+    echo "error: Unknown Linux kernel flavor"
+    exit 1
+  fi
   
   if [ "$RPI3_MODEL_ARCH_BITS" = 32 ]; then
     DEBIAN_RELEASE_ARCH=armhf
@@ -182,7 +204,7 @@ fi
 
 # Fail early: Is kernel ready?
 if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
-  echo "error: cannot proceed: Linux mainline kernel must be precompiled"
+  echo "error: cannot proceed: Linux kernel must be precompiled"
   exit 1
 fi
 

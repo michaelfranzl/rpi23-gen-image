@@ -7,7 +7,6 @@
 
 
 # Copy kernel sources
-#cp -rL "${KERNELSRC_DIR}" "${R}/usr/src/linux"
 mkdir -p "${KERNEL_DIR}"
 rsync -a --exclude=".git" "${KERNELSRC_DIR}/" "${KERNEL_DIR}/"
 
@@ -15,6 +14,7 @@ rsync -a --exclude=".git" "${KERNELSRC_DIR}/" "${KERNEL_DIR}/"
 # Install kernel modules
 if [ "$ENABLE_REDUCE" = true ] ; then
   make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" INSTALL_MOD_STRIP=1 INSTALL_MOD_PATH=../../.. modules_install
+  
 else
   make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" INSTALL_MOD_PATH=../../.. modules_install
 
@@ -30,8 +30,6 @@ if [ "$KERNEL_HEADERS" = true ] ; then
 fi
 
 
-
-
 # Prepare boot (firmware) directory
 mkdir "${BOOT_DIR}"
 
@@ -43,7 +41,17 @@ install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"
 
 
 # Copy device tree binaries
-install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
+
+if [ "$RPI_MODEL" = 3 ] ; then
+  # Copy dts and dtb device tree sources and binaries
+  mkdir "${BOOT_DIR}/overlays"
+  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/"*.dtb "${BOOT_DIR}/"
+  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/"*.dtb* "${BOOT_DIR}/overlays/"
+  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/README" "${BOOT_DIR}/overlays/README"
+  
+else
+  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
+fi
 
 # Copy zImage kernel to the boot directory
 install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
@@ -105,30 +113,6 @@ install_readonly files/boot/config.txt "${BOOT_DIR}/config.txt"
 if [ "$ENABLE_INITRAMFS" = true ] ; then
   echo "initramfs initramfs-${KERNEL_VERSION} followkernel" >> "${BOOT_DIR}/config.txt"
 fi
-
-# Disable RPi3 Bluetooth and restore ttyAMA0 serial device
-if [ "$RPI_MODEL" = 3 ] ; then
-  if [ "$ENABLE_CONSOLE" = true ] ; then
-    echo "dtoverlay=pi3-miniuart-bt" >> "${BOOT_DIR}/config.txt"
-  fi
-fi
-
-# Create firmware configuration and cmdline symlinks
-ln -sf firmware/config.txt "${R}/boot/config.txt"
-ln -sf firmware/cmdline.txt "${R}/boot/cmdline.txt"
-
-# Install and setup kernel modules to load at boot
-mkdir -p "${R}/lib/modules-load.d/"
-install_readonly files/modules/rpi2.conf "${R}/lib/modules-load.d/rpi2.conf"
-
-# Load sound module at boot
-if [ "$ENABLE_SOUND" = true ] ; then
-  sed -i "s/^# snd_bcm2835/snd_bcm2835/" "${R}/lib/modules-load.d/rpi2.conf"
-fi
-
-# Install kernel modules blacklist
-mkdir -p "${ETC_DIR}/modprobe.d/"
-install_readonly files/modules/raspi-blacklist.conf "${ETC_DIR}/modprobe.d/raspi-blacklist.conf"
 
 # Install and setup fstab
 install_readonly files/mount/fstab "${ETC_DIR}/fstab"

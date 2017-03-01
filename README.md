@@ -10,10 +10,7 @@
 This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
 * Only Debian releases 9 ("Stretch") and newer are supported.
-* Only the unpatched/mainline/vanilla Linux kernel is supported (not the Rapberry Pi Kernel flavor).
-* The Linux mainline/vanilla kernel must be pre-cross-compiled on the PC running this script (instructions below).
-* Only U-Boot booting is supported.
-* The U-Boot sources must be pre-downloaded and pre-cross-compiled on the PC running this script (instructions below).
+* A Linux kernel must be pre-cross-compiled on the PC running this script (instructions below).
 * An apt caching proxy server must be installed to save bandwidth (instructions below).
 * The installation of the system to an SD card is done via rsync copying, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out (instructions below).
 * The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel.
@@ -176,7 +173,6 @@ For example:
     KERNELSRC_DIR="$(pwd)/../linux" \
     RPI_MODEL=2 \
     RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
-    ENABLE_IPTABLES=true \
     ENABLE_REDUCE=true \
     REDUCE_SSHD=true \
     ./rpi23-gen-image.sh
@@ -499,7 +495,10 @@ Enable automatic assignment of predictable, stable network interface names for a
 Install kernel headers with built kernel.
 
 ##### `KERNELSRC_DIR`=""
-Path to a directory of a pre-built and cross-compiled Linux mainline/vanilla kernel.
+Path to a directory of a pre-built and cross-compiled Linux kernel.
+
+#### `KERNEL_FLAVOR`="raspberry"
+Specifies the flavor of Linux kernel pointed at by `KERNELSRC_DIR`. Either "raspberry" or "vanilla".
 
 ##### `UBOOTSRC_DIR`=""
 Path to a directory of a pre-built and cross-compiled u-boot bootoader. Download it with `git clone git://git.denx.de/u-boot.git`.

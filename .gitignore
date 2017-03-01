@@ -4,3 +4,6 @@ packages
 *.swp
 *.bak
 *.log
+*.kate-swp
+~*
+*.swp
