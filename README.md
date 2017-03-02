@@ -34,7 +34,7 @@ Thus, this script only supports:
 RPi2 with u-boot with official kernel  
 RPi3 with u-boot with official kernel
 
-With a RPi2, you should get good results, see related blog posts:
+With a **RPi2**, you should get very good results, see related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
 
@@ -42,15 +42,17 @@ https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
 
 https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
-With a RPi3, you may more easily run into problems; kernel support doesn't seem to be complete. My tests showed that it will at least boot and enable the ethernet interface.
+With a **RPi3**, you may discover that it is booting, but that support by the Linux kernel doesn't seem to be complete. My tests showed that it will at least boot and enable the ethernet interface. This may improve over time.
+
+If you want full support of hardware, consider switching to the official OS for the Raspberry called Raspbian.
 
 
-In general, this script is EXPERIMENTAL.
+In general, this script is EXPERIMENTAL. I do not provide ISO file system images.
 
 
 ## Setting up host environment
 
-Basically, we will deboostrap a minimal *Debian 9 ("Stretch")* system for the Raspberry on a regular PC running also *Debian 9 ("Stretch")*. Then we copy that system onto a SD card, then boot it on the Raspberry.
+Basically, we will deboostrap a minimal *Debian 9 ("Stretch")* system for the Raspberry on a regular PC running also *Debian 9 ("Stretch")*. Then we copy that system on a SD card, then boot it on the Raspberry.
 
 We will work with the following directories:
 
@@ -189,7 +191,7 @@ For example:
     UBOOTSRC_DIR="$(pwd)/../u-boot" \
     KERNELSRC_DIR="$(pwd)/../linux" \
     RPI_MODEL=2 \
-    HOSTNAME="rpi" \
+    HOSTNAME="rpi2" \
     RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
     ENABLE_REDUCE=true \
     REDUCE_SSHD=true \
@@ -235,33 +237,34 @@ The following commands will erase all contents of the SD card and install the sy
     
 ### Try booting the Raspberry
 
-Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt on the screen. Login with the login details you've passed into the script (usename "pi", password "xxx").
+Insert the SD card into the Raspberry Pi, and if everything went well, you should see a console-based login prompt on the screen. Login with the login details you've passed into the script (USER_NAME and PASSWORD).
 
-Alternatively, if you have included "avahi-daemon" in your APT_INCLUDES, you simply can log in via SSH, even without knowing its IP address:
+Alternatively, if you have included "avahi-daemon" in your APT_INCLUDES, you don't need a screen and keyboard and can simply log in via SSH from another computer, even without knowing the Rasberry's dynamic/DHCP IP address (replace "hostname" and "username" with what you have set as USER_NAME and HOSTNAME above):
 
-    ssh pi@rpi2-stretch.local
+    ssh username@hostname.local
 
-
+    
+On the RPi3, the VC4 based framebuffer makes my screen go blank. I don't know yet why.
 
 
 ### Finishing touches directly on the Raspberry
 
-Remember to change usernames and passwords!
+Remember to change usernames, passwords, and SSH keys!
 
 
 #### Check uber-low RAM usage
 
-Running `top` shows that the freshly booted system uses only 28 MB out of the availabl 1GB RAM!
+Running `top` shows that the freshly booted system uses only 23 MB out of the availabl 1GB RAM! Confirmed for both RPi2 and RPi3.
 
 
 #### Network Time Synchronization
 
-The Raspberry doesn't have a real time clock. But the default `systemd` syncs time from the network by default. Check the output of `timedatectl`.
+The Raspberry doesn't have a real time clock. But the default `systemd` conveniently syncs time from the network. Check the output of `timedatectl`. Confirmed working for both RPi2 and RPi3.
 
 
 #### Hardware Random Number Generator
 
-The working device node is available at `/dev/hwrng`
+The working device node is available at `/dev/hwrng`. Confirmed working for both RPi2 and RPi3.
 
 
 #### I2C Bus
@@ -270,9 +273,12 @@ Also try I2C support:
 
     apt-get install ic2-tools
     i2cdetect -y 0
-    
+
+Confirmed working for both RPi2 and RPi3.
     
 #### Test onboard LEDs
+
+As of the kernel revision referenced above, this only works on the RPi2. The RPi3  has only the red PWR LED on all the time.
 
 By default, the green onboard LED of the RPi blinks in a heartbeat pattern according to the system load (this is done by kernel feature LEDS_TRIGGER_HEARTBEAT).
 
@@ -326,6 +332,8 @@ Reboot, and you should be greeted by the LightDM greeter screen!
     
     
 #### Test GPU acceleration via VC4 kernel driver
+
+Only successfully tested on the RPi2. Not yet tested on the RPI3.
 
     apt-get install mesa-utils
     glxgears
