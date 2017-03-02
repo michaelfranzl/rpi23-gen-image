@@ -9,19 +9,32 @@
 
 This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
-* Only Debian releases 9 ("Stretch") and newer are supported.
-* A Linux kernel must be pre-cross-compiled on the PC running this script (instructions below).
+* Only official Debian releases 9 ("Stretch") and newer are supported.
+* Only the official/mainline/vanilla Linux kernel is supported (not the raspberry flavor kernel).
+* The Linux kernel must be pre-cross-compiled on the PC running this script (instructions below).
+* Only U-Boot booting is supported.
+* The U-Boot sources must be pre-downloaded and pre-cross-compiled on the PC running this script (instructions below).
 * An apt caching proxy server must be installed to save bandwidth (instructions below).
-* The installation of the system to an SD card is done via rsync copying, rather than creating, shrinking and expanding ISO images, which is error-prone, slow, and wears the SD cards out (instructions below).
-* The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the Linux Kernel.
+* The installation of the system to an SD card is done by simple copying or rsyncing, rather than creating, shrinking and expanding file system images.
+* The FBTURBO option is removed in favor or the working VC4 OpenGL drivers of the mainline Linux kernel.
 
-The above changes are aimed at higher bootstrapping speed, less complexity of the script, and less surprises. The user will have to do more manual work, but that is a good thing: *"Give a man a fish and you feed him for a day; Teach a man to fish and you feed him for a lifetime."* **For this reason, I won't offer precompiled SD card images.**
+All of these simplifications are aimed at higher bootstrapping speed and maintainability of the script. For example, we want to *avoid* testing of all of the following combinations:
 
+RPi2 with    u-boot, with official kernel  
+RPi2 without u-boot, with official kernel  
+RPi2 with    u-boot, with raspberry kernel  
+RPi2 without u-boot, with raspberry kernel  
+RPi3 with    u-boot, with official kernel  
+RPi3 without u-boot, with official kernel  
+RPi3 with    u-boot, with raspberry kernel  
+RPi3 without u-boot, with raspberry kernel  
 
-The status of this project is EXPERIMENTAL.
+Thus, this script only supports:
 
+RPi2 with u-boot with official kernel  
+RPi3 with u-boot with official kernel
 
-See related blog posts:
+With a RPi2, you should get good results, see related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
 
@@ -29,6 +42,10 @@ https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
 
 https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
+With a RPi3, you may more easily run into problems; kernel support doesn't seem to be complete. My tests showed that it will at least boot and enable the ethernet interface.
+
+
+In general, this script is EXPERIMENTAL.
 
 
 ## Setting up host environment
@@ -79,7 +96,7 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     
 Confirmed working revision (approx. version 4.10, Feb 2017): 60e8d3e11645a1b9c4197d9786df3894332c1685
 
-A working configuration file for this Linux kernel revision is included in this repository (`working-linux-config.txt`).
+A working configuration file for this Linux kernel revision is included in this repository (`working-*-linux-config.txt`).
     
 If you want to generate the default `.config` file that is also working on the Raspberry, execute
 
@@ -172,6 +189,7 @@ For example:
     UBOOTSRC_DIR="$(pwd)/../u-boot" \
     KERNELSRC_DIR="$(pwd)/../linux" \
     RPI_MODEL=2 \
+    HOSTNAME="rpi" \
     RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
     ENABLE_REDUCE=true \
     REDUCE_SSHD=true \
@@ -185,10 +203,11 @@ The file `example.sh` in this repostory contains a working example.
     
 ### Install the system on a SD card
 
-Insert a SD card into the card reader of your host PC. You'll need two partitions on it. I'll leave as an exercise for the reader the creation of a  partition table according to the following output of `fdisk` for a 64GB card:
+Insert a SD card into the card reader of your host PC. You'll need two partitions on it. I'll leave as an exercise for the reader the creation of a  partition table according to the following output of `fdisk` for a 32GB card:
 
-    /dev/mmcblk0p1 * 2048 133119 131072 64M c W95 FAT32 (LBA)
-    /dev/mmcblk0p2 133120 125067263 124934144 59.6G 83 Linux
+    Device         Boot  Start        End    Sectors    Size   Id  Type
+    /dev/mmcblk0p1        2048     500000     497953  243.1M    c  W95 FAT32 (LBA)
+    /dev/mmcblk0p2      501760   62552063   62050304   29.6G   83  Linux
 
 The following commands will erase all contents of the SD card and install the system (copy via rsync) on the SD card:
 

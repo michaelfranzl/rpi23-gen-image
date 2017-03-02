@@ -154,50 +154,17 @@ set +x
 # Set Raspberry Pi model specific configuration
 if [ "$RPI_MODEL" = 2 ] ; then
 
-  if [ "$KERNEL_FLAVOR" = "vanilla" ]; then
-    # Set DTB file that will be passed by u-boot to the vanilla kernel
-    # This is tested and works well.
-    DTB_FILE=bcm2836-rpi-2-b.dtb
-    
-  elif [ "$KERNEL_FLAVOR" = "raspberry" ]; then
-    # A single DTB file doesn't work well with u-boot and a RPi3
-    # because the Linux raspberry flavor apparently requires merged
-    # device trees from multiple files. I tested it, it would boot fully,
-    # but there was no console framebuffer, and the LEDs were off.
-    # This is beyond my understanding at this time.
-    
-    # For this reason, u-boot is not used for this case.
-    # Instead, the Linux raspberry flavor kernel will be booted by the
-    # firmware directly, and the firmware apparently automatically
-    # knows which device trees to pass to it.
-    
-    # This works well too.
-    
-  else
-    echo "error: Unknown Linux kernel flavor"
-    exit 1
-  fi
-  
+  DTB_FILE=bcm2836-rpi-2-b.dtb
   DEBIAN_RELEASE_ARCH=armhf
   KERNEL_ARCH=arm
   
   
 elif [ "$RPI_MODEL" = 3 ] ; then
 
-  if [ "$KERNEL_FLAVOR" = "vanilla" ]; then
-    echo "error: Vanilla Kernel on Raspberry Pi 3 is not yet supported!"
-    # I tried, but u-boot would say that it is loading the kernel
-    # then no progress on the screen.
-    # Same problem here: https://stackoverflow.com/questions/40510479/raspberry-3-booting-a-kernel-by-using-u-boot
-    exit 1
-  elif [ "$KERNEL_FLAVOR" = "raspberry" ]; then
-    # No u-boot is used in this case (see comment above about multiple device tree files)
-    # Kernel will be started directly by the firmware.
-    # This works well too.
-  else
-    echo "error: Unknown Linux kernel flavor"
-    exit 1
-  fi
+  # The vanilla flavor Linux kernel doesn't yet offer a device tree
+  # for the RPi3, but the one from the RPi2 provides at least
+  # basic functionality.
+  DTB_FILE=bcm2836-rpi-2-b.dtb
   
   if [ "$RPI3_MODEL_ARCH_BITS" = 32 ]; then
     DEBIAN_RELEASE_ARCH=armhf

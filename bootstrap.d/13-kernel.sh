@@ -41,18 +41,7 @@ install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"
 
 
 # Copy device tree binaries
-
-if [ "$KERNEL_FLAVOR" = "raspberry" ] ; then
-  # Copy dts and dtb device tree sources and binaries
-  mkdir "${BOOT_DIR}/overlays"
-  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/"*.dtb "${BOOT_DIR}/"
-  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/"*.dtb* "${BOOT_DIR}/overlays/"
-  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/overlays/README" "${BOOT_DIR}/overlays/README"
-  
-else
-  # vanilla kernel
-  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
-fi
+install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
 
 # Copy zImage kernel to the boot directory
 install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
@@ -99,10 +88,7 @@ else
   CMDLINE="${CMDLINE} net.ifnames=1"
 fi
 
-# Set init to systemd if required by Debian release
-if [ "$DEBIAN_RELEASE" = "stretch" ] ; then
-  CMDLINE="${CMDLINE} init=/bin/systemd"
-fi
+CMDLINE="${CMDLINE} init=/bin/systemd"
 
 # Install firmware boot cmdline
 echo "${CMDLINE}" > "${BOOT_DIR}/cmdline.txt"
