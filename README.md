@@ -185,13 +185,17 @@ For a RPi3 this is:
 
 Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
 
+Find out how many CPU cores you have to speed up compilation:
+
+    NUM_CPU_CORES=$(grep -c processor /proc/cpuinfo)
+
 Compile for a RPi model 2 (32 bits):
 
-    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
+    make -j${NUM_CPU_CORES} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
     
 Compile for a RPi model 3 (64 bits):
     
-    make -j4 ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- rpi_3_defconfig all
+    make -j${NUM_CPU_CORES} ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- rpi_3_defconfig all
     
 Verify that you have the required bootloader file:
 
