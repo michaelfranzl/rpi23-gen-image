@@ -43,12 +43,25 @@ install_readonly "${KERNEL_DIR}/.config" "${R}/boot/config-${KERNEL_VERSION}"
 # Copy device tree binaries
 install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/dts/${DTB_FILE}" "${BOOT_DIR}/"
 
-# Copy zImage kernel to the boot directory
-install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/zImage" "${BOOT_DIR}/${KERNEL_IMAGE}"
+
+
+if [ "$RPI_MODEL" = 3 ] ; then
+  # The default Linux kernel 'make' target generates an uncompressed 'Image' and a gzip-compresesd 'Image.gz'. We use latter and wrap it into an uImage. u-boot can decompress gzip images.
+  
+  # Load and entry address can be gotten by inspecting `text_offset` (bytes 64-128) of the uncompressed Linux 'Image' (0x80000). See https://www.kernel.org/doc/Documentation/arm64/booting.txt
+  
+  ${UBOOTSRC_DIR}/tools/mkimage -A ${KERNEL_ARCH} -O linux -T kernel -C gzip -a 0x80000 -e 0x80000 -d "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_IMAGE_SOURCE}" "${BOOT_DIR}/${KERNEL_IMAGE_TARGET}"
+  
+else
+  # RPI_MODEL 2
+  
+  # The default Linux kernel 'make' target generates a self-extracting 'zImage'. From the perspective of u-boot this image is uncompressed because u-boot doesn't have to do anything to decompress it. So we don't have to wrap it with the `mkimage` command.
+  install_readonly "${KERNEL_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_IMAGE_SOURCE}" "${BOOT_DIR}/${KERNEL_IMAGE_TARGET}"
+fi
+
 
 # Clean the kernel sources in the chroot
 make -C "${KERNEL_DIR}" ARCH="${KERNEL_ARCH}" CROSS_COMPILE="${CROSS_COMPILE}" mrproper
-
 
 
 

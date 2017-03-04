@@ -37,14 +37,9 @@ set -x
 
 # Raspberry Pi model configuration
 RPI_MODEL=${RPI_MODEL:=2}
-RPI3_MODEL_ARCH_BITS=${RPI3_MODEL_ARCH_BITS:=32}
 
 # Debian release
 DEBIAN_RELEASE=${DEBIAN_RELEASE:=stretch}
-
-CROSS_COMPILE=${CROSS_COMPILE:=arm-linux-gnueabihf-}
-KERNEL_IMAGE=${KERNEL_IMAGE:=linuz.img}
-QEMU_BINARY=${QEMU_BINARY:=/usr/bin/qemu-arm-static}
 
 # URLs
 FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/boot}
@@ -140,7 +135,7 @@ CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
 
 # Packages required in the chroot build environment
 APT_INCLUDES=${APT_INCLUDES:=""}
-APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,systemd,u-boot-tools"
+APT_INCLUDES="${APT_INCLUDES},apt-transport-https,apt-utils,ca-certificates,debian-archive-keyring,systemd"
 
 # Packages required for bootstrapping  (host PC)
 REQUIRED_PACKAGES="debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git"
@@ -150,32 +145,26 @@ MISSING_PACKAGES=""
 set +x
 
 
-
 # Set Raspberry Pi model specific configuration
 if [ "$RPI_MODEL" = 2 ] ; then
-
   DTB_FILE=bcm2836-rpi-2-b.dtb
   DEBIAN_RELEASE_ARCH=armhf
   KERNEL_ARCH=arm
-  
+  CROSS_COMPILE=arm-linux-gnueabihf-
+  KERNEL_IMAGE_SOURCE=zImage
+  KERNEL_IMAGE_TARGET=linuz.img
+  QEMU_BINARY=/usr/bin/qemu-arm-static
+  UBOOT_CONFIG=rpi_2_defconfig
   
 elif [ "$RPI_MODEL" = 3 ] ; then
-
-  # The vanilla flavor Linux kernel doesn't yet offer a device tree
-  # for the RPi3, but the one from the RPi2 provides at least
-  # basic functionality.
-  DTB_FILE=bcm2836-rpi-2-b.dtb
-  
-  if [ "$RPI3_MODEL_ARCH_BITS" = 32 ]; then
-    DEBIAN_RELEASE_ARCH=armhf
-    KERNEL_ARCH=arm
-  else
-    #DEBIAN_RELEASE_ARCH=arm64
-    #KERNEL_ARCH=arm64
-    #CROSSCOMPILER=aarch64-linux-gnu-
-    echo "error: Raspberry Pi architecture bits ${RPI3_MODEL_ARCH_BITS} is not yet supported!"
-    exit 1
-  fi
+  DTB_FILE=broadcom/bcm2837-rpi-3-b.dtb
+  DEBIAN_RELEASE_ARCH=arm64
+  KERNEL_ARCH=arm64
+  CROSS_COMPILE=aarch64-linux-gnu-
+  KERNEL_IMAGE_SOURCE=Image.gz
+  KERNEL_IMAGE_TARGET=linux.uImage
+  QEMU_BINARY=/usr/bin/qemu-aarch64-static
+  UBOOT_CONFIG=rpi_3_defconfig
   
 else
   echo "error: Raspberry Pi model ${RPI_MODEL} is not supported!"
@@ -190,7 +179,7 @@ fi
 
 
 # Fail early: Is kernel ready?
-if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/zImage" ] ; then
+if [ ! -e "${KERNELSRC_DIR}/arch/${KERNEL_ARCH}/boot/${KERNEL_IMAGE_SOURCE}" ] ; then
   echo "error: cannot proceed: Linux kernel must be precompiled"
   exit 1
 fi

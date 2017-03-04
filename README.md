@@ -2,7 +2,7 @@
 
 ## Introduction
 
-`rpi23-gen-image.sh` is an Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2) and Raspberry Pi 3 (RPi3) computers.
+`rpi23-gen-image.sh` is an Debian Linux bootstrapping shell script for generating Debian OS images for Raspberry Pi 2 (RPi2, 32 bit) and Raspberry Pi 3 (RPi3, 64 bit) computers.
 
 
 *Note by Michael Franzl:*
@@ -34,7 +34,8 @@ Thus, this script only supports:
 RPi2 with u-boot with official kernel  
 RPi3 with u-boot with official kernel
 
-With a **RPi2**, you should get very good results, see related blog posts:
+
+With a **RPi2** (setting RPI_MODEL=2) is well supported. It will run the arm architecture of Debian, and a 32-bit kernel. You should get very good results, see my related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
 
@@ -42,12 +43,12 @@ https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
 
 https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
-With a **RPi3**, you may discover that it is booting, but that support by the Linux kernel doesn't seem to be complete. My tests showed that it will at least boot and enable the ethernet interface. This may improve over time.
-
-If you want full support of hardware, consider switching to the official OS for the Raspberry called Raspbian.
 
 
-In general, this script is EXPERIMENTAL. I do not provide ISO file system images.
+The newer **RPi3** (setting RPI_MODEL=3) is supported too. It will run the arm64 architecture of Debian, and a 64-bit kernel. The support of this board by the Linux kernel will very likely improve over time.
+
+
+In general, this script is EXPERIMENTAL. I do not provide ISO file system images. It is better to master the process rather than to rely on precompiled images. In this sense, use this project only for educational purposes.
 
 
 ## Setting up host environment
@@ -85,7 +86,17 @@ Check its status page:
 
 The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process.
 
-    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc device-tree-compiler crossbuild-essential-armhf
+    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc device-tree-compiler
+    
+For a RPi2, you also need:
+
+    apt-get crossbuild-essential-armhf
+    
+For a RPi3, you also need:
+
+    crossbuild-essential-arm64
+    
+    
     
 
     
@@ -98,17 +109,33 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     
 Confirmed working revision (approx. version 4.10, Feb 2017): 60e8d3e11645a1b9c4197d9786df3894332c1685
 
-A working configuration file for this Linux kernel revision is included in this repository (`working-*-linux-config.txt`).
+Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
 If you want to generate the default `.config` file that is also working on the Raspberry, execute
 
     make mrproper
+    
+For a RPi2:
+
     make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- multi_v7_defconfig
     
-Whichever `.config` file you have now, if you want to get more control as to what is enabled in the kernel, you can run the graphical configuration tool at this point:
+For a RPi3:
+    
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+    
+    
+Whichever `.config` file you have at this point, if you want to get more control as to what is enabled in the kernel, you can run the graphical configuration tool at this point:
 
     apt-get install libglib2.0-dev libgtk2.0-dev libglade2-dev
+    
+For a RPi2:
+
     make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- gconfig
+    
+For a RPi3:
+    
+    make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- gconfig
+
     
 Before compiling the kernel, back up your `.config` file so that you don't lose it after the next `make mrproper`:
 
@@ -125,33 +152,50 @@ Optionally, copy your previously backed up `.config`:
 
     cp ../kernelconfig-backup.txt .config
 
-Run the compilation on 4 CPU cores. This takes about 10 minutes on a modern PC:
+Find out how many CPU cores you have to speed up compilation:
 
-    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+    NUM_CPU_CORES=$(grep -c processor /proc/cpuinfo)
     
-Verify that you have the required kernel image:
+Run the compilation on all CPU cores. This takes about 10 minutes on a modern PC:
 
-    ls -l ./arch/arm/boot/zImage
+For a RPi2:
+
+    make -j${NUM_CPU_CORES} ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+    
+For a RPi3:
+    
+    make -j${NUM_CPU_CORES} ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+    
+    
+Verify that you have the required kernel image.
+
+For a RPi2 this is:
+
+    ./arch/arm/boot/zImage
+    
+For a RPi3 this is:
+
+    ./arch/arm/boot/Image.gz
     
     
 ### U-Boot bootloader compilation
 
     cd ..
     git clone git://git.denx.de/u-boot.git
-    
+
 Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
 
-Then, for a RPi model 2:
+Compile for a RPi model 2 (32 bits):
 
     make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_2_defconfig all
     
-For a RPi model 3:
-
-    make -j4 ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- rpi_3_32b_defconfig all
+Compile for a RPi model 3 (64 bits):
+    
+    make -j4 ARCH=arm CROSS_COMPILE=aarch64-linux-gnu- rpi_3_defconfig all
     
 Verify that you have the required bootloader file:
 
-    ls -l ./u-boot.bin
+    ./u-boot.bin
 
 
     
@@ -243,9 +287,6 @@ Alternatively, if you have included "avahi-daemon" in your APT_INCLUDES, you don
 
     ssh username@hostname.local
 
-    
-On the RPi3, the VC4 based framebuffer makes my screen go blank. I don't know yet why.
-
 
 ### Finishing touches directly on the Raspberry
 
@@ -275,10 +316,11 @@ Also try I2C support:
     i2cdetect -y 0
 
 Confirmed working for both RPi2 and RPi3.
-    
+
+
 #### Test onboard LEDs
 
-As of the kernel revision referenced above, this only works on the RPi2. The RPi3  has only the red PWR LED on all the time.
+As of the kernel revision referenced above, this only works on the RPi2. The RPi3  has only the red PWR LED on all the time, but otherwise is working fine.
 
 By default, the green onboard LED of the RPi blinks in a heartbeat pattern according to the system load (this is done by kernel feature LEDS_TRIGGER_HEARTBEAT).
 
@@ -323,9 +365,11 @@ Show status of the local DNS caching client:
 
 #### Install GUI
 
+Successfully tested on the RPi2 and RPI3.
+
 If you want to install a graphical user interface, I would suggest the light-weight LXDE window manager. Gnome is still too massive to run even on a GPU-accelerated Raspberry.
 
-    apt-get install lightdm xorg lxde kxde-common task-lxde-desktop
+    apt-get install lightdm lxde lxde-common task-lxde-desktop
 
 Reboot, and you should be greeted by the LightDM greeter screen!
 
@@ -333,7 +377,7 @@ Reboot, and you should be greeted by the LightDM greeter screen!
     
 #### Test GPU acceleration via VC4 kernel driver
 
-Only successfully tested on the RPi2. Not yet tested on the RPI3.
+Successfully tested on the RPi2 and RPI3.
 
     apt-get install mesa-utils
     glxgears
@@ -355,21 +399,15 @@ Glxinfo should output:
     
 ### Kernel compilation directly on the Rasberry
 
-In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the `ARCH` and `CROSS_COMPILE` flags. Instead, you need the `-fno-pic` compiler flag for modules. The following is just the compilation step:
+Only successfully tested on the RPi2. Not yet tested on the RPI3.
+
+In case you want to compile and deploy another Mainline Linux kernel directly on the Raspberry, proceed as described above, but you don't need the `ARCH` and `CROSS_COMPILE` flags. Instead, you need the `-fno-pic` compiler flag for modules. The following is just the compilation step (configuration and installation omitted):
 
     make -j5 CFLAGS_MODULE="-fno-pic"
-    make modules_install # install into /lib/modules/
-    
-    # make backup of old kernel!
-    cp /boot/firmware/linuz.img /boot/firmware/linuz.old
-    
-    # install new kernel
-    cp ./arch/arm/boot/zImage /boot/firmware/linuz.img 
-    
-    # keep used configuration 
-    cp .config /boot/firmware/linux-config.txt 
+    make modules_install
 
 
+    
 
 ## Documentaion of all command-line parameters
 
