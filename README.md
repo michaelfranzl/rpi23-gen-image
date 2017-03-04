@@ -35,7 +35,7 @@ RPi2 with u-boot with official kernel
 RPi3 with u-boot with official kernel
 
 
-With a **RPi2** (setting RPI_MODEL=2) is well supported. It will run the arm architecture of Debian, and a 32-bit kernel. You should get very good results, see my related blog posts:
+A **RPi2** (setting RPI_MODEL=2) is well supported. It will run the arm architecture of Debian, and a 32-bit kernel. You should get very good results, see my related blog posts:
 
 https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
 
