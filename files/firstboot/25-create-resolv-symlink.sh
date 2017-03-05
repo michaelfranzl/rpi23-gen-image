@@ -11,5 +11,5 @@ if [ ! -f "/run/systemd/resolve/resolv.conf" ] ; then
   touch /run/systemd/resolve/resolv.conf
 fi
 
-# Create symlink to /etc/reolv.conf
-ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+# Create symlink to /etc/resolv.conf
+ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf

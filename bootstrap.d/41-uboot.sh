@@ -14,25 +14,12 @@ install_readonly files/boot/uboot.mkimage "${BOOT_DIR}/uboot.mkimage"
 
 printf "# Set the kernel boot command line\nsetenv bootargs \"earlyprintk ${CMDLINE}\"\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
 
-if [ "$ENABLE_INITRAMFS" = true ] ; then
-  # Convert generated initramfs for U-Boot using mkimage
-  ${UBOOTSRC_DIR}/tools/mkimage -A "${KERNEL_ARCH}" -T ramdisk -C none -n "initramfs-${KERNEL_VERSION}" -d "/boot/firmware/initramfs-${KERNEL_VERSION}" "/boot/firmware/initramfs-${KERNEL_VERSION}.uboot"
 
-  # Remove original initramfs file
-  rm -f "${BOOT_DIR}/initramfs-${KERNEL_VERSION}"
-
-  # Configure U-Boot to load generated initramfs
-  printf "# Set initramfs file\nsetenv initramfs initramfs-${KERNEL_VERSION}.uboot\n\n$(cat ${BOOT_DIR}/uboot.mkimage)" > "${BOOT_DIR}/uboot.mkimage"
-  printf "\nbootz \${kernel_addr_r} \${ramdisk_addr_r} \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
-    
+if [ "$RPI_MODEL" = 3 ] ; then
+  printf "\nbootm \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
 else
-
-  if [ "$RPI_MODEL" = 3 ] ; then
-    printf "\nbootm \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
-  else
-    # RPI_MODEL 2
-    printf "\nbootz \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
-  fi
+  # RPI_MODEL 2
+  printf "\nbootz \${kernel_addr_r} - \${fdt_addr_r}" >> "${BOOT_DIR}/uboot.mkimage"
 fi
 
 

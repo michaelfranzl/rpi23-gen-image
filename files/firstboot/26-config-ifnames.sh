@@ -1,6 +1,6 @@
 logger -t "rc.firstboot" "Configuring network interface name"
 
-INTERFACE_NAME=$(dmesg | grep "renamed from eth0" | awk -F ":| " '{ print $9 }')
+INTERFACE_NAME=$(dmesg | perl -pe 's/.* (\w+): renamed from.*/\1/')
 
 if [ ! -z "${INTERFACE_NAME}" ] ; then
   if [ -r "/etc/systemd/network/eth.network" ] ; then

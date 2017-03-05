@@ -552,9 +552,6 @@ Enable IPv4/IPv6 network stack hardening settings.
 ##### `CHROOT_SCRIPTS`=""
 Path to a directory with scripts that should be run in the chroot before the image is finally built. Every executable file in this directory is run in lexicographical order.
 
-##### `ENABLE_INITRAMFS`=false
-Create an initramfs that that will be loaded during the Linux startup process. `ENABLE_INITRAMFS` will automatically get enabled if `ENABLE_CRYPTFS`=true.
-
 ##### `ENABLE_IFNAMES`=true
 Enable automatic assignment of predictable, stable network interface names for all local Ethernet, WLAN interfaces. This might create complex and long interface names. This parameter is only supported if the Debian release `stretch` is used. See: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
 
@@ -602,22 +599,7 @@ Replace `openssh-server` with `dropbear`.
 ##### `REDUCE_LOCALE`=true
 Remove all `locale` translation files.
 
-#### Encrypted root partition:
 
-##### `ENABLE_CRYPTFS`=false
-Enable full system encryption with dm-crypt. Setup a fully LUKS encrypted root partition (aes-xts-plain64:sha512) and generate required initramfs. The /boot directory will not be encrypted. `ENABLE_CRYPTFS` is experimental.
-
-##### `CRYPTFS_PASSWORD`=""
-Set password of the encrypted root partition. This parameter is mandatory if `ENABLE_CRYPTFS`=true.
-
-##### `CRYPTFS_MAPPING`="secure"
-Set name of dm-crypt managed device-mapper mapping.
-
-##### `CRYPTFS_CIPHER`="aes-xts-plain64:sha512"
-Set cipher specification string. `aes-xts*` ciphers are strongly recommended.
-
-##### `CRYPTFS_XTSKEYSIZE`=512
-Sets key size in bits. The argument has to be a multiple of 8.
 
 ## Understanding the script
 The functions of this script that are required for the different stages of the bootstrapping are split up into single files located inside the `bootstrap.d` directory. During the bootstrapping every script in this directory gets executed in lexicographical order:

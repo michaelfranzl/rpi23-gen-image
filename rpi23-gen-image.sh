@@ -104,7 +104,6 @@ ENABLE_MINBASE=${ENABLE_MINBASE:=false}
 ENABLE_REDUCE=${ENABLE_REDUCE:=false}
 ENABLE_HARDNET=${ENABLE_HARDNET:=false}
 ENABLE_IPTABLES=${ENABLE_IPTABLES:=false}
-ENABLE_INITRAMFS=${ENABLE_INITRAMFS:=false}
 ENABLE_IFNAMES=${ENABLE_IFNAMES:=true}
 
 # Kernel installation settings
@@ -122,13 +121,6 @@ REDUCE_BASH=${REDUCE_BASH:=false}
 REDUCE_HWDB=${REDUCE_HWDB:=true}
 REDUCE_SSHD=${REDUCE_SSHD:=true}
 REDUCE_LOCALE=${REDUCE_LOCALE:=true}
-
-# Encrypted filesystem settings
-ENABLE_CRYPTFS=${ENABLE_CRYPTFS:=false}
-CRYPTFS_PASSWORD=${CRYPTFS_PASSWORD:=""}
-CRYPTFS_MAPPING=${CRYPTFS_MAPPING:="secure"}
-CRYPTFS_CIPHER=${CRYPTFS_CIPHER:="aes-xts-plain64:sha512"}
-CRYPTFS_XTSKEYSIZE=${CRYPTFS_XTSKEYSIZE:=512}
 
 # Chroot scripts directory
 CHROOT_SCRIPTS=${CHROOT_SCRIPTS:=""}
@@ -197,23 +189,6 @@ if [ ! -d "$RPI_FIRMWARE_DIR" ] ; then
 fi
 
 
-# Add cryptsetup package to enable filesystem encryption
-if [ "$ENABLE_CRYPTFS" = true ] ; then
-  REQUIRED_PACKAGES="${REQUIRED_PACKAGES} cryptsetup"
-  APT_INCLUDES="${APT_INCLUDES},cryptsetup"
-
-  if [ -z "$CRYPTFS_PASSWORD" ] ; then
-    echo "error: no password defined (CRYPTFS_PASSWORD)!"
-    exit 1
-  fi
-  ENABLE_INITRAMFS=true
-fi
-
-# Add initramfs generation tools
-if [ "$ENABLE_INITRAMFS" = true ] ; then
-  APT_INCLUDES="${APT_INCLUDES},initramfs-tools"
-fi
-
 # Check if all required packages are installed on the build system
 for package in $REQUIRED_PACKAGES ; do
   if [ "`dpkg-query -W -f='${Status}' $package`" != "install ok installed" ] ; then
@@ -250,12 +225,6 @@ fi
 if [ -n "$CHROOT_SCRIPTS" ] && [ ! -d "$CHROOT_SCRIPTS" ] ; then
    echo "error: ${CHROOT_SCRIPTS} specified directory not found (CHROOT_SCRIPTS)!"
    exit 1
-fi
-
-# Check if specified device mapping already exists (will be used by cryptsetup)
-if [ -r "/dev/mapping/${CRYPTFS_MAPPING}" ] ; then
-  echo "error: mapping /dev/mapping/${CRYPTFS_MAPPING} already exists, not proceeding"
-  exit 1
 fi
 
 # Don't clobber an old build
