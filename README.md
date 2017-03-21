@@ -185,7 +185,7 @@ For a RPi3 this is:
 
 Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
 
-Let's increase the maximum kernel image size from the default (8 MB) to 64 MB. This way, u-boot will be able to boot even larger kernels. Edit `./u-boot/include/configs/rpi.2` and add above the very last line (directly above "#endif"):
+Let's increase the maximum kernel image size from the default (8 MB) to 64 MB. This way, u-boot will be able to boot even larger kernels. Edit `./u-boot/include/configs/rpi.h` and add above the very last line (directly above "#endif"):
 
     #define CONFIG_SYS_BOOTM_LEN (64 * 1024 * 1024)
 
