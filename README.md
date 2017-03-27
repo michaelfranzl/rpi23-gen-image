@@ -90,11 +90,11 @@ The following list of Debian packages must be installed on the build system beca
     
 For a RPi2, you also need:
 
-    apt-get crossbuild-essential-armhf
+    apt-get install crossbuild-essential-armhf
     
 For a RPi3, you also need:
 
-    crossbuild-essential-arm64
+    apt-get install crossbuild-essential-arm64
     
     
     
@@ -175,7 +175,7 @@ For a RPi2 this is:
     
 For a RPi3 this is:
 
-    ./arch/arm/boot/Image.gz
+    ./arch/arm64/boot/Image.gz
     
     
 ### U-Boot bootloader compilation
