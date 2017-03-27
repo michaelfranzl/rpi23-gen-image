@@ -109,6 +109,8 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     
 Confirmed working revision (approx. version 4.10, Feb 2017): 60e8d3e11645a1b9c4197d9786df3894332c1685
 
+    git checkout 60e8d3e116
+
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
 If you want to generate the default `.config` file that is also working on the Raspberry, execute
@@ -184,6 +186,8 @@ For a RPi3 this is:
     git clone git://git.denx.de/u-boot.git
 
 Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
+
+    git checkout b24cf8540a
 
 Let's increase the maximum kernel image size from the default (8 MB) to 64 MB. This way, u-boot will be able to boot even larger kernels. Edit `./u-boot/include/configs/rpi.h` and add above the very last line (directly above "#endif"):
 
