@@ -86,7 +86,7 @@ Check its status page:
 
 The following list of Debian packages must be installed on the build system because they are essentially required for the bootstrapping process.
 
-    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc device-tree-compiler
+    apt-get install debootstrap debian-archive-keyring qemu-user-static binfmt-support dosfstools rsync bmap-tools whois git bc device-tree-compiler dbus psmisc
     
 For a RPi2, you also need:
 
