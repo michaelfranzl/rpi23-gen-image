@@ -421,7 +421,7 @@ In case you want to compile and deploy another Mainline Linux kernel directly on
 
     
 
-## Documentaion of all command-line parameters
+## Documentation of all command-line parameters
 
 The script accepts certain command-line parameters to enable or disable specific OS features, services and configuration settings. These parameters are passed to the `rpi23-gen-image.sh` script via (simple) shell-variables. Unlike environment shell-variables (simple) shell-variables are defined at the beginning of the command-line call of the `rpi23-gen-image.sh` script.
 
