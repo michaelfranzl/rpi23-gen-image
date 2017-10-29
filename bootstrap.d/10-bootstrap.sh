@@ -22,7 +22,7 @@ fi
 http_proxy=${APT_PROXY} debootstrap --arch="${DEBIAN_RELEASE_ARCH}" --foreign ${VARIANT} --components="${COMPONENTS}" --include="${APT_INCLUDES}" "${DEBIAN_RELEASE}" "${R}" "http://${APT_SERVER}/debian"
 
 # Copy qemu emulator binary to chroot
-install_exec "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
+install -m 755 -o root -g root "${QEMU_BINARY}" "${R}${QEMU_BINARY}"
 
 # Copy debian-archive-keyring.pgp
 mkdir -p "${R}/usr/share/keyrings"
