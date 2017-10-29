@@ -19,11 +19,6 @@ cat files/firstboot/24-generate-machineid.sh >> "${ETC_DIR}/rc.firstboot"
 # Create /etc/resolv.conf symlink
 cat files/firstboot/25-create-resolv-symlink.sh >> "${ETC_DIR}/rc.firstboot"
 
-# Configure automatic network interface names
-if [ "$ENABLE_IFNAMES" = true ] ; then
-  cat files/firstboot/26-config-ifnames.sh >> "${ETC_DIR}/rc.firstboot"
-fi
-
 # Finalize rc.firstboot script
 cat files/firstboot/99-finish.sh >> "${ETC_DIR}/rc.firstboot"
 chmod +x "${ETC_DIR}/rc.firstboot"

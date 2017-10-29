@@ -561,9 +561,6 @@ Enable IPv4/IPv6 network stack hardening settings.
 ##### `CHROOT_SCRIPTS`=""
 Path to a directory with scripts that should be run in the chroot before the image is finally built. Every executable file in this directory is run in lexicographical order.
 
-##### `ENABLE_IFNAMES`=true
-Enable automatic assignment of predictable, stable network interface names for all local Ethernet, WLAN interfaces. This might create complex and long interface names. This parameter is only supported if the Debian release `stretch` is used. See: https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
-
 #### Kernel, Firmware, and bootloader:
 
 ##### `KERNEL_HEADERS`=true
