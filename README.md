@@ -244,6 +244,7 @@ For example:
     USER_NAME="pi" \
     PASSWORD="xxx" \
     APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync,vim" \
+    APT_PROXY="localhost:3142" \
     UBOOTSRC_DIR="$(pwd)/../u-boot" \
     KERNELSRC_DIR="$(pwd)/../linux" \
     RPI_MODEL=2 \
@@ -255,7 +256,7 @@ For example:
 
 You may want to modify the variables according to the section "Command-line parameters" below.
 
-The file `example.sh` in this repostory contains a working example.
+The file `example.sh` in this repostory contains a working example for RPi3.
 
 
     

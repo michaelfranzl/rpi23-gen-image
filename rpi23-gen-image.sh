@@ -82,7 +82,7 @@ NET_NTP_1=${NET_NTP_1:=""}
 NET_NTP_2=${NET_NTP_2:=""}
 
 # APT settings
-APT_PROXY=${APT_PROXY:="localhost:3142"}
+APT_PROXY=${APT_PROXY:=""}
 APT_SERVER=${APT_SERVER:="ftp.debian.org"}
 
 # Feature settings

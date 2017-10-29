@@ -4,6 +4,7 @@ DEBIAN_RELEASE="stretch" \
 USER_NAME="pi" \
 PASSWORD="xxx" \
 APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync,vim" \
+APT_PROXY="localhost:3142" \
 UBOOTSRC_DIR="$(pwd)/../u-boot" \
 KERNELSRC_DIR="$(pwd)/../linux" \
 RPI_MODEL=3 \
