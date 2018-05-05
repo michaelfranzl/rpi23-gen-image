@@ -391,7 +391,7 @@ Successfully tested on the RPi2 and RPI3.
 
 If you want to install a graphical user interface, I would suggest the light-weight LXDE window manager. Gnome is still too massive to run even on a GPU-accelerated Raspberry.
 
-    apt-get install lightdm lxde lxde-common task-lxde-desktop
+    apt-get install task-lxde-desktop lxde-common
 
 Reboot, and you should be greeted by the LightDM greeter screen!
 
