@@ -12,4 +12,5 @@ HOSTNAME="rpi3" \
 RPI_FIRMWARE_DIR="$(pwd)/../raspberry-firmware" \
 ENABLE_REDUCE=true \
 REDUCE_SSHD=true \
+ENABLE_WIRELESS=true \
 ./rpi23-gen-image.sh

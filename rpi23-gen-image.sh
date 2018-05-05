@@ -43,7 +43,7 @@ DEBIAN_RELEASE=${DEBIAN_RELEASE:=stretch}
 
 # URLs
 FIRMWARE_URL=${FIRMWARE_URL:=https://github.com/raspberrypi/firmware/raw/master/boot}
-WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm80211/brcm}
+WLAN_FIRMWARE_URL=${WLAN_FIRMWARE_URL:=https://github.com/RPi-Distro/firmware-nonfree/raw/master/brcm}
 
 # Build directories
 BASEDIR="$(pwd)/images/${DEBIAN_RELEASE}"

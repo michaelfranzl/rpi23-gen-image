@@ -352,6 +352,12 @@ To toggle the red PWR LED:
 Or use the red PWR LED as heartbeat indicator:
 
     echo heartbeat > /sys/class/leds/PWR/trigger
+
+
+#### WLAN (RPi3 only)
+
+If `ENABLE_WIRELESS` was set to `true` during install, the WLAN interface should be detected. Inspect if `lsmod` lists the module `brcmfmac`. Also check if `networkctl` lists `wlan0`. It *should* be straighrforward from here to set up a wireless network connection.
+
     
     
 #### Notes about systemd
@@ -518,7 +524,7 @@ Install and enable OpenSSH service. The default configuration of the service doe
 Allow the installation of non-free Debian packages that do not comply with the DFSG. This is required to install closed-source firmware binary blobs.
 
 ##### `ENABLE_WIRELESS`=false
-Download and install the [closed-source firmware binary blob](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm80211/brcm) that is required to run the internal wireless interface of the Raspberry Pi model `3`. This parameter is ignored if the specified `RPI_MODEL` is not `3`.
+Download and install the [closed-source firmware binary blob](https://github.com/RPi-Distro/firmware-nonfree/tree/master/brcm) that is required to run the internal wireless interface of the Raspberry Pi model `3`. This parameter is ignored if the specified `RPI_MODEL` is not `3`.
 
 ##### `ENABLE_RSYSLOG`=true
 If set to false, disable and uninstall rsyslog (so logs will be available only in journal files)
