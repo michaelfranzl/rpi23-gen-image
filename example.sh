@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBIAN_RELEASE="stretch" \
+DEBIAN_RELEASE="buster" \
 USER_NAME="pi" \
 PASSWORD="xxx" \
 APT_INCLUDES="i2c-tools,rng-tools,avahi-daemon,rsync,vim" \

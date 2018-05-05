@@ -107,9 +107,12 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
     
-Confirmed working revision (approx. version 4.10, Feb 2017): 60e8d3e11645a1b9c4197d9786df3894332c1685
+Confirmed working revisions:
 
-    git checkout 60e8d3e116
+60e8d3e11645a1b9c4197d9786df3894332c1685 (Feb 2017, approx. version 4.10)
+625e2001e99e82ea3eb5b0370a428a4328b9166b (May 2018, approx. version 4.17)
+
+    git checkout 625e2001
 
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
@@ -568,9 +571,6 @@ Install kernel headers with built kernel.
 
 ##### `KERNELSRC_DIR`=""
 Path to a directory of a pre-built and cross-compiled Linux kernel.
-
-#### `KERNEL_FLAVOR`="raspberry"
-Specifies the flavor of Linux kernel pointed at by `KERNELSRC_DIR`. Either "raspberry" or "vanilla".
 
 ##### `UBOOTSRC_DIR`=""
 Path to a directory of a pre-built and cross-compiled u-boot bootoader. Download it with `git clone git://git.denx.de/u-boot.git`.
