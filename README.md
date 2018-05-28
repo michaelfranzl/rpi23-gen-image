@@ -107,12 +107,11 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
     
-Confirmed working revisions:
+Confirmed working revision:
 
-60e8d3e11645a1b9c4197d9786df3894332c1685 (Feb 2017, approx. version 4.10)
-625e2001e99e82ea3eb5b0370a428a4328b9166b (May 2018, approx. version 4.17)
+786b71f5b754273ccef6d9462e52062b3e1f9877 (28. May 2018, approx. version 4.17)
 
-    git checkout 625e2001
+    git checkout 786b71f5
 
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
