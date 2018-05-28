@@ -9,7 +9,7 @@
 
 This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
-* Only official Debian releases 9 ("Stretch") and newer are supported.
+* Only official Debian releases 9 ("Stretch") and newer are supported. "Buster" has been tested too and works well.
 * Only the official/mainline/vanilla Linux kernel is supported (not the raspberry flavor kernel).
 * The Linux kernel must be pre-cross-compiled on the PC running this script (instructions below).
 * Only U-Boot booting is supported.
