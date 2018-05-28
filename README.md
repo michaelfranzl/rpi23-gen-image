@@ -113,6 +113,7 @@ Confirmed working revision:
 
     git checkout 60e8d3e1
 
+As of May 2018, newer kernel versions (4.17+) are known not to work.
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
 If you want to generate the default `.config` file that is also working on the Raspberry, execute
