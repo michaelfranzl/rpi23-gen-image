@@ -109,9 +109,9 @@ Get the latest Linux mainline kernel. This is a very large download, about 2GB. 
     
 Confirmed working revision:
 
-786b71f5b754273ccef6d9462e52062b3e1f9877 (28. May 2018, approx. version 4.17)
+60e8d3e11645a1b9c4197d9786df3894332c1685 (Feb 2017, approx. version 4.10)
 
-    git checkout 786b71f5
+    git checkout 60e8d3e1
 
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
