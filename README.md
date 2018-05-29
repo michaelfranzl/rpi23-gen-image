@@ -9,7 +9,7 @@
 
 This is a fork of the original project by github user "drtyhlpr". My fork is developed into a slightly different direction:
 
-* Only official Debian releases 9 ("Stretch") and newer are supported. "Buster" has been tested too and works well.
+* Only official Debian releases 9 ("Stretch") and newer are supported. Debian 10 ("Buster") has been tested too and works well.
 * Only the official/mainline/vanilla Linux kernel is supported (not the raspberry flavor kernel).
 * The Linux kernel must be pre-cross-compiled on the PC running this script (instructions below).
 * Only U-Boot booting is supported.
@@ -45,7 +45,7 @@ https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainli
 
 
 
-The newer **RPi3** (setting RPI_MODEL=3) is supported too. It will run the arm64 architecture of Debian, and a 64-bit kernel. The support of this board by the Linux kernel will very likely improve over time.
+The newer **RPi 3 B V1.2** (setting RPI_MODEL=3) is supported too. It will run the arm64 architecture of Debian, and a 64-bit kernel. The support of this board by the Linux kernel will very likely improve over time. Newer revisions of version 3 may work but have not been tested yet. If you run into problems with a different board, please do NOT file Issue reports. Instead, please fork this project and contribute back.
 
 
 In general, this script is EXPERIMENTAL. I do not provide ISO file system images. It is better to master the process rather than to rely on precompiled images. In this sense, use this project only for educational purposes.
@@ -102,16 +102,18 @@ For a RPi3, you also need:
     
 ### Kernel compilation
 
-Get the latest Linux mainline kernel. This is a very large download, about 2GB. (For a smaller download of about 90 MB, consider downloading the latest stable kernel as .tar.xz from https://kernel.org.)
+Get the Linux mainline kernel. This is a very large download, about 2GB. (For a smaller download of about 90 MB, consider downloading the latest stable kernel as .tar.xz from https://kernel.org.)
 
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
     
-Confirmed working revision:
+For now, please use exactly this commit ID, which has been confirmed working:
 
 60e8d3e11645a1b9c4197d9786df3894332c1685 (Feb 2017, approx. version 4.10)
 
     git checkout 60e8d3e1
+    
+If you run into problems using another commit ID, please do NOT file Issue reports. Instead, please fork this project and contribute back.
 
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
@@ -187,9 +189,13 @@ For a RPi3 this is:
     cd ..
     git clone git://git.denx.de/u-boot.git
 
-Confirmed working revision: b24cf8540a85a9bf97975aadd6a7542f166c78a3
+For now, please use exactly this commit ID, which has been confirmed working:
+
+b24cf8540a85a9bf97975aadd6a7542f166c78a3
 
     git checkout b24cf8540a
+    
+If you run into problems using another commit ID, please do NOT file Issue reports. Instead, please fork this project and contribute back.
 
 Let's increase the maximum kernel image size from the default (8 MB) to 64 MB. This way, u-boot will be able to boot even larger kernels. Edit `./u-boot/include/configs/rpi.h` and add above the very last line (directly above "#endif"):
 
@@ -355,7 +361,7 @@ Or use the red PWR LED as heartbeat indicator:
 
 #### WLAN (RPi3 only)
 
-If `ENABLE_WIRELESS` was set to `true` during install, the WLAN interface should be detected. Inspect if `lsmod` lists the module `brcmfmac`. Also check if `networkctl` lists `wlan0`. It *should* be straighrforward from here to set up a wireless network connection.
+If `ENABLE_WIRELESS` was set to `true` during install, the WLAN interface should be detected. Inspect if `lsmod` lists the module `brcmfmac`. Also check if `networkctl` lists `wlan0`. It *should* be straightforward from here to set up a wireless network connection.
 
     
     
