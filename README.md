@@ -102,7 +102,14 @@ For a RPi3, you also need:
     
 ### Kernel compilation
 
-Get the Linux mainline kernel. This is a very large download, about 2GB. (For a smaller download of about 90 MB, consider downloading the latest stable kernel as .tar.xz from https://kernel.org.)
+Get the Linux mainline kernel by downloading a stable kernel as .tar.xz from https://kernel.org.
+
+    wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.16.13.tar.xz
+    tar xf linux-4.16.13.tar.xz
+    mv linux-4.16.13 linux
+    cd linux
+
+Alternatively you may use the development repository (This is a very large download, about 2 GB).
 
     git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
     cd linux
