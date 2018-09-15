@@ -37,11 +37,11 @@ RPi3 with u-boot with official kernel
 
 A **RPi2** (setting RPI_MODEL=2) is well supported. It will run the arm architecture of Debian, and a 32-bit kernel. You should get very good results, see my related blog posts:
 
-https://michaelfranzl.com/2016/10/31/raspberry-pi-debian-stretch/
+https://blog.michael.franzl.name/2016/10/31/raspberry-pi-debian-stretch/
 
-https://michaelfranzl.com/2016/11/10/setting-i2c-speed-raspberry-pi/
+https://blog.michael.franzl.name/2016/11/10/setting-i2c-speed-raspberry-pi/
 
-https://michaelfranzl.com/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
+https://blog.michael.franzl.name/2016/11/10/reading-cpu-temperature-raspberry-pi-mainline-linux-kernel/
 
 
 
