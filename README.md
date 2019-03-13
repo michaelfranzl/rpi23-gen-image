@@ -290,14 +290,17 @@ The following commands will erase all contents of the SD card and install the sy
     mkdir -p /mnt/raspcard/boot/firmware
     mount /dev/mmcblk0p1 /mnt/raspcard/boot/firmware
 
-    rsync -a ./images/stretch/build/chroot/ /mnt/raspcard
+    rsync -avc ./images/stretch/build/chroot/ /mnt/raspcard
 
+    sync
     umount /dev/mmcblk0p1
     umount /dev/mmcblk0p2
+    sync
     
 
-*Note about SD cards:* Cheap (or sometimes even professional) SD cards can be weird at times. I've repeatedly noticed corrupt/truncated files even after proper rsync and proper umount on different brand new SD cards. TODO: Add a method to verify all file checksums after rsync.
+*Note about SD cards:* Cheap (or sometimes even professional) SD cards can be weird. I've repeatedly noticed corrupt/truncated files even after proper rsync and proper umount on different brand new SD cards. To verify that all files have been transferred correctly, make a `diff` between the two directories:
 
+    diff -rq ./images/stretch/build/chroot/ /mnt/raspcard
 
     
 ### Try booting the Raspberry
