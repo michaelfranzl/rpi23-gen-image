@@ -366,7 +366,37 @@ Or use the red PWR LED as heartbeat indicator:
 
 If `ENABLE_WIRELESS` was set to `true` during install, the WLAN interface should be detected. Inspect if `lsmod` lists the module `brcmfmac`. Also check if `networkctl` lists `wlan0`. It *should* be straightforward from here to set up a wireless network connection.
 
-    
+#### Ethernet MAC address
+
+The Raspberry hardware sets the MAC address of the ethernet adapter to a random value at each reboot. To make it constant, we need to spoof it before the ethernet adapter comes up. We'll do so using systemd:
+
+Install macchanger:
+
+    apt install macchanger
+
+Create the file `/etc/systemd/system/macspoof@.service` with the following contents. Also in this file, change the MAC address to a value of your choice:
+
+```
+[Unit]
+Description=macchanger on %I
+Wants=network-pre.target
+Before=network-pre.target
+BindsTo=sys-subsystem-net-devices-%i.device
+After=sys-subsystem-net-devices-%i.device
+
+[Service]
+ExecStart=/usr/bin/macchanger --mac=1a:2a:3a:4a:5a:6a %I
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable this service:
+
+    systemctl enable macspoof@eth0
+
+After all reboots, the MAC address should be the static value entered in the file.
     
 #### Notes about systemd
 
