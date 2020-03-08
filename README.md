@@ -115,6 +115,7 @@ For now, please use exactly this commit ID, which has been confirmed working:
     
 If you run into problems using another commit ID, please do NOT file Issue reports. Instead, please fork this project and contribute back.
 
+As of May 2018, newer kernel versions (4.17+) are known not to work.
 Working configuration files for this Linux kernel revision are included in this repository. (`working-rpi2-linux-config.txt` and `working-rpi3-linux-config.txt`).
     
 If you want to generate the default `.config` file that is also working on the Raspberry, execute
